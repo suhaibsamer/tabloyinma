@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "515047456154",
+    "project_id": "tabloy-iman",
+    "storage_bucket": "tabloy-iman.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:515047456154:android:8e79254091b9bface00e23",
+        "android_client_info": {
+          "package_name": "com.example.tabloy_iman"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD5MHbA_JAEnMXWDxzN9apJ_wi5j6QtGgQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
