@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
 import 'dart:ui' as ui;
@@ -8,6 +9,8 @@ import 'package:tabloy_iman/services/quran_metadata.dart';
 import 'package:tabloy_iman/models/quran_verse.dart';
 import 'package:tabloy_iman/screens/quran/quran_reading_screen.dart';
 import 'dart:math' as math;
+
+import '../../services/quran_audio_service.dart';
 
 class HafizQuranScreen extends StatefulWidget {
   const HafizQuranScreen({super.key});
@@ -359,11 +362,30 @@ class _HafizQuranScreenState extends State<HafizQuranScreen> with TickerProvider
                                   overflow: TextOverflow.ellipsis,
                                 ),
                               ),
-                              if (item['type'] == 'Memorization')
-                                const SizedBox(width: 8),
-                              if (item['type'] == 'Memorization')
+                              if (item['type'] == 'Memorization') ...[
                                 GestureDetector(
                                   onTap: () {
+                                    final audioService = Provider.of<QuranAudioService>(context, listen: false);
+                                    audioService.setHifzMode(true);
+                                    audioService.setRange(item['start_idx'], item['end_idx']);
+                                    
+                                    Navigator.push(context, MaterialPageRoute(builder: (_) => QuranReadingScreen(
+                                      startGlobalIndex: item['start_idx'],
+                                      endGlobalIndex: item['end_idx'],
+                                      title: 'ڕۆژی ${item['day_number']}',
+                                      isHifzMode: true,
+                                    )));
+                                  },
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                    decoration: BoxDecoration(color: _green.withOpacity(0.1), borderRadius: BorderRadius.circular(6)),
+                                    child: const Text('گوێگرتن', style: TextStyle(color: _green, fontSize: 10)),
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                GestureDetector(
+                                  onTap: () {
+                                    Provider.of<QuranAudioService>(context, listen: false).setHifzMode(false);
                                     Navigator.push(context, MaterialPageRoute(builder: (_) => QuranReadingScreen(
                                       startGlobalIndex: item['start_idx'],
                                       endGlobalIndex: item['end_idx'],
@@ -376,6 +398,7 @@ class _HafizQuranScreenState extends State<HafizQuranScreen> with TickerProvider
                                     child: const Text('خوێندنەوە', style: TextStyle(color: _accent, fontSize: 10)),
                                   ),
                                 ),
+                              ],
                             ],
                           ),
                           Text(DateFormat('yyyy/MM/dd').format(item['date']), style: TextStyle(color: _moonGlow.withOpacity(0.3), fontSize: 11)),

@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/widget_background"
+    android:padding="12dp">
+
+    <LinearLayout
+        android:id="@+id/header"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+
+        <ImageView
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="@mipmap/ic_launcher" />
+
+        <TextView
+            android:id="@+id/app_name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:text="تابلۆی ئیمان"
+            android:textColor="#FFFFFF"
+            android:textSize="14sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/countdown_section"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/header"
+        android:layout_marginTop="8dp"
+        android:orientation="vertical"
+        android:gravity="center">
+
+        <TextView
+            android:id="@+id/next_prayer_name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="مەغریب"
+            android:textColor="#22D3EE"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/next_prayer_countdown"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="01:15:00"
+            android:textColor="#FFFFFF"
+            android:textSize="20sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/prayer_times_list"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/countdown_section"
+        android:layout_marginTop="8dp"
+        android:orientation="horizontal"
+        android:gravity="center">
+        <!-- We will populate this via code if possible, or just show a few -->
+        <!-- For simplicity in RemoteViews, we'll use 5 TextViews -->
+        <TextView android:id="@+id/time_fajr" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:gravity="center" android:textColor="#B9C2D0" android:textSize="10sp" android:text="04:30\nبەیانی" />
+        <TextView android:id="@+id/time_dhuhr" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:gravity="center" android:textColor="#B9C2D0" android:textSize="10sp" android:text="12:15\nنیوەڕۆ" />
+        <TextView android:id="@+id/time_asr" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:gravity="center" android:textColor="#B9C2D0" android:textSize="10sp" android:text="03:45\nعەسر" />
+        <TextView android:id="@+id/time_maghrib" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:gravity="center" android:textColor="#B9C2D0" android:textSize="10sp" android:text="06:30\nشێوان" />
+        <TextView android:id="@+id/time_isha" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:gravity="center" android:textColor="#B9C2D0" android:textSize="10sp" android:text="08:00\nخەوتنان" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/dua_section"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/prayer_times_list"
+        android:layout_marginTop="12dp"
+        android:background="@drawable/dua_background"
+        android:padding="8dp"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/dua_text"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="دوعای کاتژمێر لێرە دەردەکەوێت..."
+            android:textColor="#E8E2FF"
+            android:textSize="12sp"
+            android:gravity="center"
+            android:maxLines="3"
+            android:ellipsize="end" />
+    </LinearLayout>
+
+</RelativeLayout>

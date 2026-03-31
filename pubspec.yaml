@@ -58,6 +58,11 @@ dependencies:
   flutter_timezone: ^5.0.2
   font_awesome_flutter: ^11.0.0
   url_launcher: ^6.3.2
+  just_audio: ^0.9.36
+  audio_service: ^0.18.12
+  connectivity_plus: ^6.0.3
+  provider: ^6.1.2
+  home_widget: ^0.9.0
 
 dev_dependencies:
   flutter_test:
@@ -92,6 +97,7 @@ flutter:
   assets:
     - assets/quran.data/
     - assets/prayer-times/
+    - assets/app logo/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

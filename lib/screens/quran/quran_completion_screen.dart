@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tabloy_iman/screens/quran/quran_reading_screen.dart';
+import 'package:provider/provider.dart';
+import 'package:tabloy_iman/services/quran_audio_service.dart';
+import 'package:tabloy_iman/services/quran_metadata.dart';
 import 'dart:math' as math;
 
 class QuranCompletionScreen extends StatefulWidget {
@@ -230,6 +233,9 @@ class _QuranCompletionScreenState extends State<QuranCompletionScreen> {
   }
 
   Widget _buildHeader() {
+    final audioService = Provider.of<QuranAudioService>(context);
+    final isPlayingKhatm = audioService.player.playing && !audioService.isHifzMode;
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
@@ -240,17 +246,46 @@ class _QuranCompletionScreenState extends State<QuranCompletionScreen> {
       ),
       child: Column(
         children: [
-          Container(
-            width: 60,
-            height: 60,
-            decoration: BoxDecoration(
-              color: _accent.withOpacity(0.1),
-              shape: BoxShape.circle,
-              border: Border.all(color: _accent.withOpacity(0.3), width: 1),
-            ),
-            child: const Center(
-              child: Text('📖', style: TextStyle(fontSize: 30)),
-            ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                width: 60,
+                height: 60,
+                decoration: BoxDecoration(
+                  color: _accent.withOpacity(0.1),
+                  shape: BoxShape.circle,
+                  border: Border.all(color: _accent.withOpacity(0.3), width: 1),
+                ),
+                child: const Center(
+                  child: Text('📖', style: TextStyle(fontSize: 30)),
+                ),
+              ),
+              const SizedBox(width: 16),
+              // Play/Resume Button
+              GestureDetector(
+                onTap: () {
+                  if (isPlayingKhatm) {
+                    audioService.stop();
+                  } else {
+                    audioService.resumeKhatm();
+                  }
+                },
+                child: Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: isPlayingKhatm ? Colors.red.withOpacity(0.1) : _green.withOpacity(0.1),
+                    shape: BoxShape.circle,
+                    border: Border.all(color: isPlayingKhatm ? Colors.red.withOpacity(0.3) : _green.withOpacity(0.3)),
+                  ),
+                  child: Icon(
+                    isPlayingKhatm ? Icons.stop_rounded : Icons.play_arrow_rounded,
+                    color: isPlayingKhatm ? Colors.red : _green,
+                    size: 30,
+                  ),
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 16),
           const Text(
@@ -263,6 +298,14 @@ class _QuranCompletionScreenState extends State<QuranCompletionScreen> {
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 8),
+          if (audioService.currentVerse != null && !audioService.isHifzMode)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8.0),
+              child: Text(
+                'خوێندنەوەی ئێستا: ${QuranMetadata.getSurahName(audioService.currentVerse!.chapter)} (${audioService.currentVerse!.verse})',
+                style: const TextStyle(color: _accent, fontSize: 12, fontWeight: FontWeight.bold),
+              ),
+            ),
           Text(
             'لێرە دەتوانیت پلانی خەتمکردنی قورئانی پیرۆز دابنێیت و چاودێری بەرەوپێشچوونەکانت بکەیت',
             style: TextStyle(

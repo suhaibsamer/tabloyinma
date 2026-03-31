@@ -1,6 +1,13 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
-import '../../services/notification_service.dart';
+import 'package:flutter/services.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:provider/provider.dart';
+import 'package:just_audio/just_audio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../services/notification_service.dart';
+import '../../services/audio_preferences_service.dart';
+import '../../services/reciter_service.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -9,533 +16,1164 @@ class SettingsScreen extends StatefulWidget {
   State<SettingsScreen> createState() => _SettingsScreenState();
 }
 
-class _SettingsScreenState extends State<SettingsScreen> {
-  // ─────────────────────────────────────────────────────────────────────────────
-  // PALETTE — OLED & Emerald Accent
-  // ─────────────────────────────────────────────────────────────────────────────
-  static const _bg          = Color(0xFF090A0C);
-  static const _card        = Color(0xFF141518);
-  static const _rim         = Color(0xFF26282D);
-  static const _accent      = Color(0xFF00E676);
-  static const _accentGlow  = Color(0x1A00E676);
-  static const _textMain    = Color(0xFFF3F4F6);
-  static const _textSub     = Color(0xFF9CA3AF);
+class _SettingsScreenState extends State<SettingsScreen>
+    with TickerProviderStateMixin {
+  static const _bg = Color(0xFF070B14);
+  static const _bg2 = Color(0xFF0D1324);
+  static const _surface = Color(0xFF121A2F);
+  static const _surface2 = Color(0xFF18233D);
+  static const _accent = Color(0xFF7C5CFF);
+  static const _accent2 = Color(0xFF46C2FF);
+  static const _gold = Color(0xFFFFC96B);
+  static const _green = Color(0xFF38D39F);
+  static const _red = Color(0xFFFF6B6B);
+  static const _textPrimary = Color(0xFFF8F7FC);
+  static const _textSecondary = Color(0xFFB9C2D0);
+  static const _textMuted = Color(0xFF6F7A8B);
 
   String _selectedCity = 'erbil';
 
+  late AnimationController _fadeController;
+  late AnimationController _pulseController;
+  late Animation<double> _fadeAnim;
+  late Animation<double> _pulseAnim;
+
+  final AudioPlayer _previewPlayer = AudioPlayer();
+  String _searchQuery = '';
+
   final List<Map<String, dynamic>> _cities = [
-    {'value': 'erbil', 'name': 'هەولێر', 'emoji': '🏙️'},
-    {'value': 'sulaymaniyah', 'name': 'سلێمانی', 'emoji': '🏔️'},
-    {'value': 'duhok', 'name': 'دهۆک', 'emoji': '🌲'},
-    {'value': 'halabja', 'name': 'هەڵەبجە', 'emoji': '🌄'},
+    {'value': 'erbil', 'name': 'هەولێر', 'emoji': '🏙️', 'desc': 'پایتەخت'},
+    {'value': 'sulaymaniyah', 'name': 'سلێمانی', 'emoji': '🏔️', 'desc': 'شارەوانی'},
+    {'value': 'duhok', 'name': 'دهۆک', 'emoji': '🌲', 'desc': 'باکوور'},
+    {'value': 'halabja', 'name': 'هەڵەبجە', 'emoji': '🌄', 'desc': 'ڕۆژهەڵات'},
   ];
 
   @override
   void initState() {
     super.initState();
-    _loadSelectedCity();
+    _loadInitialData();
+
+    _fadeController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 700),
+    );
+
+    _pulseController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 2200),
+    )..repeat(reverse: true);
+
+    _fadeAnim = CurvedAnimation(
+      parent: _fadeController,
+      curve: Curves.easeOut,
+    );
+
+    _pulseAnim = Tween<double>(begin: 0.92, end: 1.03).animate(
+      CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
+    );
+
+    _fadeController.forward();
   }
 
-  Future<void> _loadSelectedCity() async {
+  Future<void> _loadInitialData() async {
     final prefs = await SharedPreferences.getInstance();
+
+    if (!mounted) return;
     setState(() {
       _selectedCity = prefs.getString('selectedCity') ?? 'erbil';
     });
   }
 
   Future<void> _setSelectedCity(String city) async {
+    HapticFeedback.lightImpact();
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('selectedCity', city);
-    setState(() {
-      _selectedCity = city;
-    });
-
-    // Reschedule prayer notifications
+    setState(() => _selectedCity = city);
     await NotificationService().schedulePrayerNotifications();
 
-    if (mounted) {
-      final cityName = _cities.firstWhere((c) => c['value'] == city)['name'];
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('شار گۆڕدرا بۆ $cityName', textAlign: TextAlign.right),
-          backgroundColor: _accent,
-          behavior: SnackBarBehavior.floating,
-          duration: const Duration(seconds: 2),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+    final cityName = _cities.firstWhere((c) => c['value'] == city)['name'];
+    _showCustomSnackBar('شار گۆڕدرا بۆ $cityName', _accent);
+  }
+
+  void _showCustomSnackBar(String message, Color color) {
+    if (!mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        backgroundColor: _surface2,
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.all(16),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(18),
+          side: BorderSide(color: color.withOpacity(0.35)),
         ),
-      );
-    }
-  }
-
-  // ─────────────────────────────────────────────────────────────────────────────
-  // DIALOG FOR ABOUT US
-  // ─────────────────────────────────────────────────────────────────────────────
-  void _showAboutUsDialog() {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return Dialog(
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          child: Container(
-            padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              color: _card,
-              borderRadius: BorderRadius.circular(28),
-              border: Border.all(color: _rim),
-              boxShadow: const [
-                BoxShadow(color: Color(0x40000000), blurRadius: 40, spreadRadius: 10),
-              ],
+        content: Row(
+          textDirection: TextDirection.rtl,
+          children: [
+            Container(
+              width: 32,
+              height: 32,
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.14),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(Icons.notifications_active_rounded, color: color, size: 18),
             ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: _accentGlow,
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(Icons.groups_rounded, color: _accent, size: 32),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                message,
+                textDirection: TextDirection.rtl,
+                style: const TextStyle(
+                  color: _textPrimary,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
                 ),
-                const SizedBox(height: 20),
-                const Text(
-                  'دەربارەی ئێمە',
-                  style: TextStyle(
-                    color: _textMain,
-                    fontSize: 20,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                const Text(
-                  'ئەم ئەپڵیکەیشنە لەلایەن تیمی گەشەپێدانی Tee Studio دروستکراوە بە مەبەستی خزمەتکردنی موسڵمانان.',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(color: _textSub, fontSize: 14, height: 1.5),
-                ),
-                const SizedBox(height: 24),
-                const Divider(color: _rim, thickness: 1),
-                const SizedBox(height: 16),
-                const Text(
-                  'تیمی گەشەپێدان',
-                  style: TextStyle(color: _accent, fontSize: 15, fontWeight: FontWeight.w700),
-                ),
-                const SizedBox(height: 12),
-                _buildTeamMember('دیزاینەر و گەشەپێدەر', 'Tee Studio'),
-                const SizedBox(height: 8),
-                _buildTeamMember('بەڕێوەبەری پڕۆژە', 'تیمی Tee Studio'),
-                const SizedBox(height: 32),
-                GestureDetector(
-                  onTap: () => Navigator.pop(context),
-                  child: Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    decoration: BoxDecoration(
-                      color: _accent,
-                      borderRadius: BorderRadius.circular(16),
-                      boxShadow: [
-                        BoxShadow(color: _accent.withOpacity(0.3), blurRadius: 12, offset: const Offset(0, 4)),
-                      ],
-                    ),
-                    child: const Text(
-                      'داخستن',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(color: _bg, fontSize: 15, fontWeight: FontWeight.w700),
-                    ),
-                  ),
-                ),
-              ],
+              ),
             ),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildTeamMember(String role, String name) {
-    return Row(
-      textDirection: TextDirection.rtl,
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Text(
-          '$role:',
-          style: const TextStyle(color: _textSub, fontSize: 13),
+          ],
         ),
-        const SizedBox(width: 8),
-        Text(
-          name,
-          style: const TextStyle(color: _textMain, fontSize: 14, fontWeight: FontWeight.w600),
-        ),
-      ],
-    );
-  }
-
-  // ─────────────────────────────────────────────────────────────────────────────
-  // DIALOG FOR ABOUT APP
-  // ─────────────────────────────────────────────────────────────────────────────
-  void _showAboutAppDialog() {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return Dialog(
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          child: Container(
-            padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              color: _card,
-              borderRadius: BorderRadius.circular(28),
-              border: Border.all(color: _rim),
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(Icons.auto_awesome_rounded, color: _accent, size: 40),
-                const SizedBox(height: 20),
-                const Text(
-                  'دەربارەی ئەپڵیکەیشن',
-                  style: TextStyle(color: _textMain, fontSize: 19, fontWeight: FontWeight.w800),
-                ),
-                const SizedBox(height: 16),
-                const Text(
-                  'ئەپڵیکەیشنی تابلۆی ئیمان، یاریدەدەرێکی تەواوی موسڵمانە بۆ ئەنجامدانی پەرستشەکانی ڕۆژانە بە شێوەیەکی ئاسان و مۆدێرن.',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(color: _textSub, fontSize: 13, height: 1.5),
-                ),
-                const SizedBox(height: 20),
-                const Text(
-                  'گرنگترین تایبەتمەندییەکان:',
-                  style: TextStyle(color: _accent, fontSize: 14, fontWeight: FontWeight.w700),
-                  textDirection: TextDirection.rtl,
-                ),
-                const SizedBox(height: 12),
-                SizedBox(
-                  height: 250,
-                  child: SingleChildScrollView(
-                    physics: const BouncingScrollPhysics(),
-                    child: Column(
-                      children: [
-                        _buildAppFeature('🕌', 'کاتەکانی بانگ و ئاگادارکەرەوەی بانگ'),
-                        _buildAppFeature('📖', 'قورئانی پیرۆز بە دەنگی قورئانخوێنەکان'),
-                        _buildAppFeature('📝', 'خەتمی قورئان و حیفزی قورئان'),
-                        _buildAppFeature('📿', 'تەسبیحی ئەلیکترۆنی و زیکرەکان'),
-                        _buildAppFeature('🕋', 'دیاریکردنی وردی قیبلە'),
-                        _buildAppFeature('✨', '٩٩ ناوی پیرۆزی خودای گەورە'),
-                        _buildAppFeature('📈', 'بەدواداچوونی بەرەوپێشچوونی ڕۆژانە'),
-                        _buildAppFeature('📅', 'ڕۆژژمێری کۆچی و زاینی'),
-                        _buildAppFeature('🏆', 'تەحەدییە ئاینییەکان'),
-                        _buildAppFeature('💰', 'ژمێرەری زەکات بە شێوەیەکی ورد'),
-                        _buildAppFeature('🤲', 'فێربوونی نوێژە فەرز و سوننەتەکان'),
-                        _buildAppFeature('📚', 'فەرهەنگی ناوەکان و ئادابە ئیسلامییەکان'),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 24),
-                GestureDetector(
-                  onTap: () => Navigator.pop(context),
-                  child: Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    decoration: BoxDecoration(color: _accent, borderRadius: BorderRadius.circular(16)),
-                    child: const Text('باشە', textAlign: TextAlign.center, style: TextStyle(color: _bg, fontWeight: FontWeight.w700)),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildAppFeature(String emoji, String text) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Row(
-        textDirection: TextDirection.rtl,
-        children: [
-          Text(emoji, style: const TextStyle(fontSize: 16)),
-          const SizedBox(width: 12),
-          Expanded(child: Text(text, style: const TextStyle(color: _textMain, fontSize: 13), textDirection: TextDirection.rtl)),
-        ],
       ),
-    );
-  }
-
-  // ─────────────────────────────────────────────────────────────────────────────
-  // DIALOG FOR CITY SELECTION
-  // ─────────────────────────────────────────────────────────────────────────────
-  void _showCitySelectionDialog() {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return Dialog(
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          child: Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: _card,
-              borderRadius: BorderRadius.circular(24),
-              border: Border.all(color: _rim),
-              boxShadow: const [
-                BoxShadow(color: Color(0x20000000), blurRadius: 30, spreadRadius: 5),
-              ],
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // Dialog Header
-                const Text(
-                  'شارەکەت هەڵبژێرە',
-                  style: TextStyle(
-                    color: _textMain,
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                const Text(
-                  'بۆ ڕێکخستنی کاتەکانی بانگ',
-                  style: TextStyle(color: _textSub, fontSize: 13),
-                ),
-                const SizedBox(height: 24),
-
-                // Cities List
-                ..._cities.map((city) {
-                  final isSelected = _selectedCity == city['value'];
-                  return GestureDetector(
-                    onTap: () {
-                      _setSelectedCity(city['value']);
-                      Navigator.pop(context); // Close dialog
-                    },
-                    child: Container(
-                      margin: const EdgeInsets.only(bottom: 12),
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                      decoration: BoxDecoration(
-                        color: isSelected ? _accentGlow : _bg,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: isSelected ? _accent.withOpacity(0.5) : _rim),
-                      ),
-                      child: Row(
-                        textDirection: TextDirection.rtl,
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Row(
-                            textDirection: TextDirection.rtl,
-                            children: [
-                              Text(city['emoji'], style: const TextStyle(fontSize: 22)),
-                              const SizedBox(width: 12),
-                              Text(
-                                city['name'],
-                                style: TextStyle(
-                                  color: isSelected ? _accent : _textMain,
-                                  fontSize: 16,
-                                  fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                                ),
-                              ),
-                            ],
-                          ),
-                          if (isSelected)
-                            const Icon(Icons.check_circle_rounded, color: _accent, size: 20),
-                        ],
-                      ),
-                    ),
-                  );
-                }),
-              ],
-            ),
-          ),
-        );
-      },
     );
   }
 
   @override
+  void dispose() {
+    _previewPlayer.dispose();
+    _fadeController.dispose();
+    _pulseController.dispose();
+    super.dispose();
+  }
+
+  String get _cityName {
+    return _cities.firstWhere((c) => c['value'] == _selectedCity)['name'];
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: _bg,
-      appBar: _buildAppBar(context),
-      body: SingleChildScrollView(
-        physics: const BouncingScrollPhysics(),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // Location Section
-              _buildSectionHeader(
-                icon: Icons.map_outlined,
-                title: 'شوێن',
-                subtitle: 'کاتەکانی بانگ بەپێی شار',
-              ),
-              const SizedBox(height: 16),
-              _buildLocationTile(), // <--- NEW BUTTON FOR DIALOG
-
-              const SizedBox(height: 48),
-
-              // About Section
-              _buildSectionHeader(
-                icon: Icons.info_outline_rounded,
-                title: 'زانیاری',
-                subtitle: 'دەربارەی ئەپڵیکەیشن و گەشەپێدەر',
-              ),
-              const SizedBox(height: 20),
-
-              _buildClickableTile(Icons.auto_awesome_outlined, 'دەربارەی ئەپڵیکەیشن', 'بینین', _showAboutAppDialog),
-              _buildClickableTile(Icons.groups_rounded, 'تیمی گەشەپێدان', 'بینین', _showAboutUsDialog),
-
-              const SizedBox(height: 40),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  // ─────────────────────────────────────────────────────────────────────────────
-  // UI COMPONENTS
-  // ─────────────────────────────────────────────────────────────────────────────
-
-  PreferredSizeWidget _buildAppBar(BuildContext context) {
-    return AppBar(
-      backgroundColor: _bg,
-      elevation: 0,
-      centerTitle: true,
-      title: const Text(
-        'ڕێکخستنەکان',
-        style: TextStyle(color: _textMain, fontWeight: FontWeight.w600, fontSize: 18),
-      ),
-      leading: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: GestureDetector(
-          onTap: () => Navigator.pop(context),
-          child: Container(
-            decoration: BoxDecoration(
-              color: _card,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: _rim),
-            ),
-            child: const Icon(Icons.arrow_back_rounded, color: _textMain, size: 18),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSectionHeader({required IconData icon, required String title, required String subtitle}) {
-    return Row(
+    return Directionality(
       textDirection: TextDirection.rtl,
+      child: Scaffold(
+        backgroundColor: _bg,
+        body: Stack(
+          children: [
+            const Positioned.fill(child: _ModernSettingsBackground()),
+            FadeTransition(
+              opacity: _fadeAnim,
+              child: CustomScrollView(
+                physics: const BouncingScrollPhysics(),
+                slivers: [
+                  _buildSliverAppBar(),
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 10, 16, 28),
+                      child: Column(
+                        children: [
+                          _buildHeroCard(),
+                          const SizedBox(height: 18),
+                          _buildSectionTitle('ڕێکخستنە سەرەکییەکان'),
+                          const SizedBox(height: 12),
+                          _buildMainCards(),
+                          const SizedBox(height: 18),
+                          _buildSectionTitle('زانیاری و پشتیوانی'),
+                          const SizedBox(height: 12),
+                          _buildInfoCards(),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSliverAppBar() {
+    return SliverAppBar(
+      backgroundColor: Colors.transparent,
+      elevation: 0,
+      pinned: false,
+      floating: true,
+      centerTitle: true,
+      expandedHeight: 90,
+      leading: Padding(
+        padding: const EdgeInsets.all(10),
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.08),
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: Colors.white.withOpacity(0.08)),
+          ),
+          child: IconButton(
+            onPressed: () => Navigator.pop(context),
+            icon: const Icon(
+              Icons.arrow_back_ios_new_rounded,
+              color: _textPrimary,
+              size: 18,
+            ),
+          ),
+        ),
+      ),
+      title: const Text(
+        'ڕێکخستن',
+        style: TextStyle(
+          color: _textPrimary,
+          fontSize: 19,
+          fontWeight: FontWeight.w900,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHeroCard() {
+    return ScaleTransition(
+      scale: _pulseAnim,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(30),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
+          child: Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(30),
+              gradient: LinearGradient(
+                colors: [
+                  _accent.withOpacity(0.28),
+                  _accent2.withOpacity(0.18),
+                ],
+                begin: Alignment.topRight,
+                end: Alignment.bottomLeft,
+              ),
+              border: Border.all(color: Colors.white.withOpacity(0.10)),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.18),
+                  blurRadius: 24,
+                  offset: const Offset(0, 12),
+                ),
+              ],
+            ),
+            child: Row(
+              children: [
+                Container(
+                  width: 62,
+                  height: 62,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(20),
+                    color: Colors.white.withOpacity(0.14),
+                  ),
+                  child: const Icon(
+                    Icons.settings_rounded,
+                    color: Colors.white,
+                    size: 30,
+                  ),
+                ),
+                const SizedBox(width: 14),
+                const Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(
+                        'کۆنترۆڵی ئەپەکەت',
+                        textAlign: TextAlign.right,
+                        style: TextStyle(
+                          color: Colors.white70,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      SizedBox(height: 6),
+                      Text(
+                        'ڕێکخستن بە شێوازێکی مۆدێرن',
+                        textAlign: TextAlign.right,
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 20,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                      SizedBox(height: 6),
+                      Text(
+                        'شار، دەنگی بانگ، زەکات و زانیارییەکانی ئەپ لە یەک شوێن',
+                        textAlign: TextAlign.right,
+                        style: TextStyle(
+                          color: Colors.white70,
+                          fontSize: 12,
+                          height: 1.45,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSectionTitle(String title) {
+    return Row(
       children: [
         Container(
-          padding: const EdgeInsets.all(10),
-          decoration: BoxDecoration(color: _accentGlow, borderRadius: BorderRadius.circular(12)),
-          child: Icon(icon, color: _accent, size: 22),
-        ),
-        const SizedBox(width: 14),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(
-                title,
-                style: const TextStyle(color: _textMain, fontSize: 16, fontWeight: FontWeight.w700),
-              ),
-              Text(
-                subtitle,
-                style: const TextStyle(color: _textSub, fontSize: 12),
-              ),
-            ],
+          width: 7,
+          height: 7,
+          decoration: const BoxDecoration(
+            color: _accent,
+            shape: BoxShape.circle,
           ),
+        ),
+        const SizedBox(width: 10),
+        Text(
+          title,
+          style: const TextStyle(
+            color: _textSecondary,
+            fontSize: 12,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        const SizedBox(width: 10),
+
+        Expanded(
+          child: Container(height: 1, color: Colors.white.withOpacity(0.08)),
         ),
       ],
     );
   }
 
-  // The new tile that opens the dialog
-  Widget _buildLocationTile() {
-    // Find the currently selected city to display its name
-    final currentCity = _cities.firstWhere(
-          (c) => c['value'] == _selectedCity,
-      orElse: () => _cities[0],
-    );
+  Widget _buildMainCards() {
+    return Consumer<AudioPreferencesService>(
+      builder: (context, audioPrefs, _) {
+        final currentAthan = audioPrefs.availableAthans.firstWhere(
+          (a) => a['file'] == audioPrefs.selectedAthanSound,
+          orElse: () => audioPrefs.availableAthans.first,
+        );
+        
+        final currentReciter = ReciterService().getById(audioPrefs.selectedReciterId);
 
+        return Column(
+          children: [
+            _buildSettingsTile(
+              icon: Icons.location_on_rounded,
+              iconColor: _accent2,
+              title: 'شار',
+              subtitle: _cityName,
+              trailingText: 'گۆڕین',
+              onTap: _showCitySelectionDialog,
+            ),
+            const SizedBox(height: 12),
+            _buildSettingsTile(
+              icon: Icons.mosque_rounded,
+              iconColor: _gold,
+              title: 'دەنگی بانگ',
+              subtitle: currentAthan['name']!,
+              trailingText: 'هەڵبژاردن',
+              onTap: _showAthanSelectionDialog,
+            ),
+            const SizedBox(height: 12),
+            _buildSettingsTile(
+              icon: Icons.record_voice_over_rounded,
+              iconColor: _green,
+              title: 'قورئانخوێنی بنەڕەتی',
+              subtitle: currentReciter.name,
+              trailingText: 'گۆڕین',
+              onTap: _showReciterSelectionDialog,
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildInfoCards() {
+    return Column(
+      children: [
+        _buildSettingsTile(
+          icon: Icons.info_outline_rounded,
+          iconColor: _accent,
+          title: 'دەربارەی ئەپ',
+          subtitle: 'تایبەتمەندی و وردەکارییەکان',
+          trailingText: 'بینە',
+          onTap: _showAboutAppDialog,
+        ),
+        const SizedBox(height: 12),
+        _buildSettingsTile(
+          icon: Icons.groups_rounded,
+          iconColor: _gold,
+          title: 'دەربارەی ئێمە',
+          subtitle: 'Tee Studio',
+          trailingText: 'بینە',
+          onTap: _showAboutUsDialog,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSettingsTile({
+    required IconData icon,
+    required Color iconColor,
+    required String title,
+    required String subtitle,
+    required String trailingText,
+    required VoidCallback onTap,
+  }) {
     return GestureDetector(
-      onTap: _showCitySelectionDialog,
+      onTap: () {
+        HapticFeedback.lightImpact();
+        onTap();
+      },
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: _card,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: _rim),
+          borderRadius: BorderRadius.circular(24),
+          gradient: LinearGradient(
+            colors: [
+              _surface.withOpacity(0.96),
+              _surface2.withOpacity(0.90),
+            ],
+            begin: Alignment.topRight,
+            end: Alignment.bottomLeft,
+          ),
+          border: Border.all(color: Colors.white.withOpacity(0.08)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.14),
+              blurRadius: 18,
+              offset: const Offset(0, 10),
+            ),
+          ],
         ),
         child: Row(
-          textDirection: TextDirection.rtl,
           children: [
-            const Icon(Icons.location_city_rounded, color: _textSub, size: 22),
-            const SizedBox(width: 16),
-            const Expanded(
-              child: Text(
-                'شاری ئێستا',
-                style: TextStyle(color: _textSub, fontSize: 14, fontWeight: FontWeight.w500),
-                textDirection: TextDirection.rtl,
+            Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                color: iconColor.withOpacity(0.14),
+                borderRadius: BorderRadius.circular(16),
               ),
+              child: Icon(icon, color: iconColor, size: 24),
             ),
-            Row(
-              textDirection: TextDirection.rtl,
+            const SizedBox(width: 12),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  currentCity['name'],
-                  style: const TextStyle(color: _accent, fontSize: 15, fontWeight: FontWeight.w700),
-                  textDirection: TextDirection.rtl,
+                  title,
+                  style: const TextStyle(
+                    color: _textPrimary,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w800,
+                  ),
                 ),
-                const SizedBox(width: 8),
-                const Icon(Icons.keyboard_arrow_down_rounded, color: _textSub, size: 20),
+                const SizedBox(height: 4),
+                Text(
+                  subtitle,
+                  style: const TextStyle(
+                    color: _textSecondary,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
               ],
             ),
+            const Spacer(),
+
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              decoration: BoxDecoration(
+                color: iconColor.withOpacity(0.12),
+                borderRadius: BorderRadius.circular(30),
+                border: Border.all(color: iconColor.withOpacity(0.18)),
+              ),
+              child: Text(
+                trailingText,
+                style: TextStyle(
+                  color: iconColor,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            ),
+
           ],
         ),
       ),
     );
   }
 
-  Widget _buildClickableTile(IconData icon, String title, String actionText, VoidCallback onTap) {
+  void _showAthanSelectionDialog() {
+    showGeneralDialog(
+      context: context,
+      barrierDismissible: true,
+      barrierLabel: '',
+      barrierColor: Colors.black.withOpacity(0.75),
+      transitionDuration: const Duration(milliseconds: 350),
+      pageBuilder: (ctx, _, __) {
+        return Consumer<AudioPreferencesService>(
+          builder: (context, audioPrefs, _) {
+            return Center(
+              child: Material(
+                color: Colors.transparent,
+                child: Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 20),
+                  padding: const EdgeInsets.all(22),
+                  decoration: BoxDecoration(
+                    color: _surface,
+                    borderRadius: BorderRadius.circular(30),
+                    border: Border.all(color: Colors.white.withOpacity(0.08)),
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Text(
+                        'دەنگی بانگ',
+                        style: TextStyle(color: _textPrimary, fontSize: 19, fontWeight: FontWeight.w900),
+                      ),
+                      const SizedBox(height: 18),
+                      ...audioPrefs.availableAthans.map((athan) {
+                        final isSelected = audioPrefs.selectedAthanSound == athan['file'];
+                        return Container(
+                          margin: const EdgeInsets.only(bottom: 10),
+                          decoration: BoxDecoration(
+                            color: isSelected ? _accent.withOpacity(0.12) : _bg2.withOpacity(0.85),
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(
+                              color: isSelected ? _accent.withOpacity(0.45) : Colors.white.withOpacity(0.06),
+                            ),
+                          ),
+                          child: ListTile(
+                            onTap: () => audioPrefs.setSelectedAthan(athan['file']!),
+                            title: Text(
+                              athan['name']!,
+                              style: TextStyle(
+                                color: isSelected ? _accent : _textPrimary,
+                                fontWeight: FontWeight.w800,
+                              ),
+                              textAlign: TextAlign.right,
+                            ),
+                            leading: IconButton(
+                              icon: const Icon(Icons.play_circle_fill_rounded, color: _accent2),
+                              onPressed: () async {
+                                try {
+                                  await _previewPlayer.stop();
+                                  _showCustomSnackBar('پێشبینینی ${athan['name']}', _accent2);
+                                } catch (e) {
+                                  _showCustomSnackBar('هەڵە لە لێدان', _red);
+                                }
+                              },
+                            ),
+                            trailing: isSelected 
+                              ? const Icon(Icons.check_circle_rounded, color: _accent)
+                              : null,
+                          ),
+                        );
+                      }),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  void _showReciterSelectionDialog() {
+    showGeneralDialog(
+      context: context,
+      barrierDismissible: true,
+      barrierLabel: '',
+      barrierColor: Colors.black.withOpacity(0.75),
+      transitionDuration: const Duration(milliseconds: 350),
+      pageBuilder: (ctx, _, __) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            final reciters = ReciterService().search(_searchQuery);
+            return Center(
+              child: Material(
+                color: Colors.transparent,
+                child: Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 40),
+                  padding: const EdgeInsets.all(22),
+                  decoration: BoxDecoration(
+                    color: _surface,
+                    borderRadius: BorderRadius.circular(30),
+                    border: Border.all(color: Colors.white.withOpacity(0.08)),
+                  ),
+                  child: Column(
+                    children: [
+                      const Text(
+                        'قورئانخوێن هەڵبژێرە',
+                        style: TextStyle(color: _textPrimary, fontSize: 19, fontWeight: FontWeight.w900),
+                      ),
+                      const SizedBox(height: 12),
+                      Container(
+                        decoration: BoxDecoration(
+                          color: _bg2,
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: TextField(
+                          textAlign: TextAlign.right,
+                          onChanged: (v) => setDialogState(() => _searchQuery = v),
+                          decoration: const InputDecoration(
+                            hintText: 'گەڕان بۆ قورئانخوێن...',
+                            hintStyle: TextStyle(color: _textMuted),
+                            prefixIcon: Icon(Icons.search, color: _accent),
+                            border: InputBorder.none,
+                            contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Expanded(
+                        child: ListView.builder(
+                          itemCount: reciters.length,
+                          itemBuilder: (context, index) {
+                            final r = reciters[index];
+                            final isSelected = AudioPreferencesService().selectedReciterId == r.id;
+                            return ListTile(
+                              onTap: () {
+                                AudioPreferencesService().setSelectedReciter(r.id);
+                                Navigator.pop(ctx);
+                              },
+                              title: Text(
+                                r.name,
+                                style: TextStyle(
+                                  color: isSelected ? _accent : _textPrimary,
+                                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                                ),
+                                textAlign: TextAlign.right,
+                              ),
+                              subtitle: Text(
+                                r.bitrate,
+                                style: const TextStyle(color: _textMuted, fontSize: 10),
+                                textAlign: TextAlign.right,
+                              ),
+                              trailing: isSelected ? const Icon(Icons.check, color: _accent) : null,
+                            );
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  void _showCitySelectionDialog() {
+    HapticFeedback.lightImpact();
+    showGeneralDialog(
+      context: context,
+      barrierDismissible: true,
+      barrierLabel: '',
+      barrierColor: Colors.black.withOpacity(0.75),
+      transitionDuration: const Duration(milliseconds: 350),
+      transitionBuilder: (ctx, anim, _, child) => ScaleTransition(
+        scale: CurvedAnimation(parent: anim, curve: Curves.easeOutBack),
+        child: FadeTransition(opacity: anim, child: child),
+      ),
+      pageBuilder: (ctx, _, __) => _buildCityDialogContent(ctx),
+    );
+  }
+
+  Widget _buildCityDialogContent(BuildContext ctx) {
+    return Center(
+      child: Material(
+        color: Colors.transparent,
+        child: Container(
+          margin: const EdgeInsets.symmetric(horizontal: 20),
+          padding: const EdgeInsets.all(22),
+          decoration: BoxDecoration(
+            color: _surface,
+            borderRadius: BorderRadius.circular(30),
+            border: Border.all(color: Colors.white.withOpacity(0.08)),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                'شارەکەت هەڵبژێرە',
+                style: TextStyle(
+                  color: _textPrimary,
+                  fontSize: 19,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+              const SizedBox(height: 18),
+              ..._cities.map((city) {
+                final isSelected = _selectedCity == city['value'];
+                return GestureDetector(
+                  onTap: () async {
+                    Navigator.pop(ctx);
+                    await _setSelectedCity(city['value']);
+                  },
+                  child: Container(
+                    margin: const EdgeInsets.only(bottom: 10),
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: isSelected
+                          ? _accent.withOpacity(0.12)
+                          : _bg2.withOpacity(0.85),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: isSelected
+                            ? _accent.withOpacity(0.45)
+                            : Colors.white.withOpacity(0.06),
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        if (isSelected)
+                          const Icon(Icons.check_circle_rounded,
+                              color: _accent, size: 20)
+                        else
+                          Container(
+                            width: 20,
+                            height: 20,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: Colors.white.withOpacity(0.15),
+                              ),
+                            ),
+                          ),
+                        const Spacer(),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Text(
+                              city['name'],
+                              style: TextStyle(
+                                color: isSelected ? _accent : _textPrimary,
+                                fontSize: 14,
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                            const SizedBox(height: 3),
+                            Text(
+                              city['desc'],
+                              style: const TextStyle(
+                                color: _textSecondary,
+                                fontSize: 11,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(width: 12),
+                        Text(city['emoji'], style: const TextStyle(fontSize: 24)),
+                      ],
+                    ),
+                  ),
+                );
+              }),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showAboutUsDialog() {
+    HapticFeedback.lightImpact();
+    showGeneralDialog(
+      context: context,
+      barrierDismissible: true,
+      barrierLabel: '',
+      barrierColor: Colors.black.withOpacity(0.75),
+      transitionDuration: const Duration(milliseconds: 350),
+      transitionBuilder: (ctx, anim, _, child) => ScaleTransition(
+        scale: CurvedAnimation(parent: anim, curve: Curves.easeOutBack),
+        child: FadeTransition(opacity: anim, child: child),
+      ),
+      pageBuilder: (ctx, _, __) => _buildAboutUsDialogContent(ctx),
+    );
+  }
+
+  Widget _buildAboutUsDialogContent(BuildContext ctx) {
+    return Center(
+      child: Material(
+        color: Colors.transparent,
+        child: Container(
+          margin: const EdgeInsets.symmetric(horizontal: 20),
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: _surface,
+            borderRadius: BorderRadius.circular(30),
+            border: Border.all(color: Colors.white.withOpacity(0.08)),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 78,
+                height: 78,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: _accent.withOpacity(0.12),
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(99),
+                  child: Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: Image.asset(
+                      'assets/app logo/Tee studio.png',
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'دەربارەی ئێمە',
+                style: TextStyle(
+                  color: _textPrimary,
+                  fontSize: 20,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'ئەم ئەپڵیکەیشنە لەلایەن تیمی گەشەپێدانی Tee Studio دروستکراوە بە مەبەستی خزمەتکردنی موسڵمانان.',
+                textAlign: TextAlign.center,
+                textDirection: TextDirection.rtl,
+                style: TextStyle(
+                  color: _textSecondary,
+                  fontSize: 13,
+                  height: 1.7,
+                ),
+              ),
+              const SizedBox(height: 18),
+              _buildMemberCard(
+                '🎨',
+                'دیزاینەر و گەشەپێدەر',
+                'Tee Studio',
+                url: 'https://www.instagram.com/tee_studio87?igsh=YWR6bGhxNzRqYXFp&utm_source=qr',
+              ),
+              const SizedBox(height: 10),
+              _buildMemberCard(
+                '📋',
+                'بەڕێوەبەری پڕۆژە',
+                'تیمی Tee Studio',
+                url: 'https://t.me/teestudio87',
+              ),
+              const SizedBox(height: 18),
+              _buildDialogButton('داخستن', Icons.close_rounded, () {
+                Navigator.pop(ctx);
+              }),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMemberCard(
+      String emoji,
+      String role,
+      String name, {
+        String? url,
+      }) {
     return GestureDetector(
-      onTap: onTap,
+      onTap: url == null
+          ? null
+          : () async {
+        final uri = Uri.parse(url);
+        if (await canLaunchUrl(uri)) {
+          await launchUrl(uri, mode: LaunchMode.externalApplication);
+        }
+      },
       child: Container(
-        margin: const EdgeInsets.only(bottom: 12),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: _card,
+          color: _bg2.withOpacity(0.85),
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: _rim),
+          border: Border.all(
+            color: url != null
+                ? _accent.withOpacity(0.20)
+                : Colors.white.withOpacity(0.06),
+          ),
         ),
         child: Row(
-          textDirection: TextDirection.rtl,
           children: [
-            Icon(icon, color: _accent, size: 20),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Text(
-                title,
-                style: const TextStyle(color: _textSub, fontSize: 14, fontWeight: FontWeight.w500),
-                textDirection: TextDirection.rtl,
-              ),
-            ),
-            Row(
-              textDirection: TextDirection.rtl,
+            if (url != null)
+              Icon(Icons.open_in_new_rounded, color: _accent.withOpacity(0.65), size: 16),
+            const Spacer(),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Text(
-                  actionText,
-                  style: const TextStyle(color: _accent, fontSize: 14, fontWeight: FontWeight.w700),
-                  textDirection: TextDirection.rtl,
+                  name,
+                  style: const TextStyle(
+                    color: _textPrimary,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w800,
+                  ),
                 ),
-                const SizedBox(width: 4),
-                const Icon(Icons.arrow_back_ios_new_rounded, color: _accent, size: 12),
+                const SizedBox(height: 3),
+                Text(
+                  role,
+                  style: const TextStyle(
+                    color: _textSecondary,
+                    fontSize: 12,
+                  ),
+                ),
               ],
             ),
+            const SizedBox(width: 12),
+            Text(emoji, style: const TextStyle(fontSize: 22)),
           ],
+        ),
+      ),
+    );
+  }
+
+  void _showAboutAppDialog() {
+    HapticFeedback.lightImpact();
+    showGeneralDialog(
+      context: context,
+      barrierDismissible: true,
+      barrierLabel: '',
+      barrierColor: Colors.black.withOpacity(0.75),
+      transitionDuration: const Duration(milliseconds: 350),
+      transitionBuilder: (ctx, anim, _, child) => ScaleTransition(
+        scale: CurvedAnimation(parent: anim, curve: Curves.easeOutBack),
+        child: FadeTransition(opacity: anim, child: child),
+      ),
+      pageBuilder: (ctx, _, __) => _buildAboutAppDialogContent(ctx),
+    );
+  }
+
+  Widget _buildAboutAppDialogContent(BuildContext ctx) {
+    final features = [
+      ('🕌', 'کاتەکانی بانگ و ئاگادارکەرەوە'),
+      ('📖', 'قورئانی پیرۆز بە دەنگی قورئانخوێنەکان'),
+      ('📝', 'خەتمی قورئان و حیفز'),
+      ('📿', 'تەسبیحی ئەلیکترۆنی و زیکرەکان'),
+      ('🕋', 'دیاریکردنی وردی قیبلە'),
+      ('✨', '٩٩ ناوی پیرۆزی خودا'),
+      ('📈', 'بەدواداچوونی بەرەوپێشچوونی ڕۆژانە'),
+      ('📅', 'ڕۆژژمێری کۆچی و زاینی'),
+      ('🏆', 'تەحەدییە ئاینییەکان'),
+      ('💰', 'ژمێرەری زەکات'),
+      ('🤲', 'فێربوونی نوێژ'),
+      ('📚', 'فەرهەنگی ناوەکان'),
+    ];
+
+    return Center(
+      child: Material(
+        color: Colors.transparent,
+        child: Container(
+          margin: const EdgeInsets.symmetric(horizontal: 20),
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.of(context).size.height * 0.82,
+          ),
+          decoration: BoxDecoration(
+            color: _surface,
+            borderRadius: BorderRadius.circular(30),
+            border: Border.all(color: Colors.white.withOpacity(0.08)),
+          ),
+          child: Column(
+            children: [
+              Container(
+                padding: const EdgeInsets.fromLTRB(24, 24, 24, 18),
+                decoration: BoxDecoration(
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
+                  gradient: LinearGradient(
+                    colors: [
+                      _accent.withOpacity(0.18),
+                      Colors.transparent,
+                    ],
+                    begin: Alignment.topRight,
+                    end: Alignment.bottomLeft,
+                  ),
+                ),
+                child: const Column(
+                  children: [
+                    Icon(Icons.auto_awesome_rounded, color: _accent, size: 30),
+                    SizedBox(height: 10),
+                    Text(
+                      'دەربارەی ئەپڵیکەیشن',
+                      style: TextStyle(
+                        color: _textPrimary,
+                        fontSize: 20,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                    SizedBox(height: 8),
+                    Text(
+                      'یاریدەدەرێکی تەواوی موسڵمانە بۆ ئەنجامدانی پەرستشەکانی ڕۆژانە بە شێوەیەکی مۆدێرن.',
+                      textAlign: TextAlign.center,
+                      textDirection: TextDirection.rtl,
+                      style: TextStyle(
+                        color: _textSecondary,
+                        fontSize: 13,
+                        height: 1.6,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Flexible(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    children: features.map((f) {
+                      return Container(
+                        margin: const EdgeInsets.only(bottom: 8),
+                        padding: const EdgeInsets.all(14),
+                        decoration: BoxDecoration(
+                          color: _bg2.withOpacity(0.85),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: Colors.white.withOpacity(0.06)),
+                        ),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                f.$2,
+                                textDirection: TextDirection.rtl,
+                                style: const TextStyle(
+                                  color: _textSecondary,
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Text(f.$1, style: const TextStyle(fontSize: 20)),
+                          ],
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+                child: _buildDialogButton('باشە', Icons.check_rounded, () {
+                  Navigator.pop(ctx);
+                }),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDialogButton(String label, IconData icon, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: () {
+        HapticFeedback.lightImpact();
+        onTap();
+      },
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(vertical: 15),
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            colors: [_accent, Color(0xFF5E47E8)],
+            begin: Alignment.topRight,
+            end: Alignment.bottomLeft,
+          ),
+          borderRadius: BorderRadius.circular(18),
+          boxShadow: [
+            BoxShadow(
+              color: _accent.withOpacity(0.28),
+              blurRadius: 16,
+              offset: const Offset(0, 8),
+            ),
+          ],
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, color: Colors.white, size: 16),
+            const SizedBox(width: 8),
+            Text(
+              label,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 14,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ModernSettingsBackground extends StatelessWidget {
+  const _ModernSettingsBackground();
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      children: [
+        Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [Color(0xFF070B14), Color(0xFF0D1324)],
+            ),
+          ),
+        ),
+        Positioned(
+          top: -80,
+          right: -40,
+          child: _GlowBlob(
+            color: const Color(0xFF7C5CFF).withOpacity(0.16),
+            size: 220,
+          ),
+        ),
+        Positioned(
+          top: 180,
+          left: -50,
+          child: _GlowBlob(
+            color: const Color(0xFF46C2FF).withOpacity(0.12),
+            size: 180,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _GlowBlob extends StatelessWidget {
+  const _GlowBlob({
+    required this.color,
+    required this.size,
+  });
+
+  final Color color;
+  final double size;
+
+  @override
+  Widget build(BuildContext context) {
+    return IgnorePointer(
+      child: Container(
+        width: size,
+        height: size,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          gradient: RadialGradient(
+            colors: [color, Colors.transparent],
+          ),
         ),
       ),
     );

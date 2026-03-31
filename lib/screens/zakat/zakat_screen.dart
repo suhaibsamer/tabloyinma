@@ -1,8 +1,33 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
-import '../../utils/kurdish_styles.dart';
-import '../../services/theme_manager.dart';
-import 'dart:math' as math;
+import 'package:flutter/services.dart';
+import 'package:tabloy_iman/services/zakat_service.dart';
 
+// ──────────────────────────────────────────────
+// Design Tokens
+// ──────────────────────────────────────────────
+abstract class _T {
+  static const bg = Color(0xFF070B14);
+  static const surface = Color(0xFF101726);
+  static const surface2 = Color(0xFF151D2E);
+  static const card = Color(0xFF121A2A);
+  static const border = Color(0xFF25304A);
+
+  static const primary = Color(0xFF8B5CF6);
+  static const primary2 = Color(0xFF6D28D9);
+  static const blue = Color(0xFF38BDF8);
+  static const gold = Color(0xFFF59E0B);
+  static const green = Color(0xFF10B981);
+  static const red = Color(0xFFFB7185);
+
+  static const text = Color(0xFFF8FAFC);
+  static const muted = Color(0xFF94A3B8);
+  static const faint = Color(0xFF64748B);
+}
+
+// ──────────────────────────────────────────────
+// Main Screen
+// ──────────────────────────────────────────────
 class ZakatScreen extends StatefulWidget {
   const ZakatScreen({super.key});
 
@@ -10,171 +35,920 @@ class ZakatScreen extends StatefulWidget {
   State<ZakatScreen> createState() => _ZakatScreenState();
 }
 
-class _ZakatScreenState extends State<ZakatScreen> {
-  final TextEditingController _goldController = TextEditingController();
-  final TextEditingController _goldPriceController = TextEditingController();
-  final TextEditingController _usdController = TextEditingController();
-  final TextEditingController _ilsController = TextEditingController();
-  final TextEditingController _usdToIlsController = TextEditingController(text: '3.7');
-  
-  // Debt controllers
-  final TextEditingController _debtsToMeController = TextEditingController();
-  final TextEditingController _debtsByMeController = TextEditingController();
+class _ZakatScreenState extends State<ZakatScreen>
+    with SingleTickerProviderStateMixin {
+  final _goldCtrl = TextEditingController();
+  final _goldPriceCtrl = TextEditingController();
+  final _usdCtrl = TextEditingController();
+  final _iqdCtrl = TextEditingController();
+  final _usdRateCtrl = TextEditingController(text: '150000');
 
-  double _totalWealthIls = 0.0;
-  double _zakatAmountIls = 0.0;
-  bool _nisabReached = false;
-  double _nisabValueIls = 0.0;
+  final _service = ZakatService();
 
-  // ── Palette ────────────────────────────────────────────────────────────
-  static const _deepSpace = Color(0xFF04060F);
-  static const _midnight = Color(0xFF0B0F1E);
-  static const _nebula = Color(0xFF131829);
-  static const _starlight = Color(0xFFF0EEF8);
-  static const _moonGlow = Color(0xFFE8E2FF);
-  static const _accent = Color(0xFFB08AFF);
-  static const _goldColor = Color(0xFFFFD97D);
+  double _total = 0;
+  double _zakat = 0;
+  double _nisabIqd = 0;
+  double _goldNisab = 85;
+  double _moneyNisab = 0;
+  bool _nisabMet = false;
 
-  void _calculateZakat() {
-    setState(() {
-      double goldWeight = double.tryParse(_goldController.text) ?? 0.0;
-      double goldPrice = double.tryParse(_goldPriceController.text) ?? 0.0;
-      double usdAmount = double.tryParse(_usdController.text) ?? 0.0;
-      double ilsAmount = double.tryParse(_ilsController.text) ?? 0.0;
-      double usdRate = double.tryParse(_usdToIlsController.text) ?? 3.7;
-      
-      double debtsToMe = double.tryParse(_debtsToMeController.text) ?? 0.0;
-      double debtsByMe = double.tryParse(_debtsByMeController.text) ?? 0.0;
+  late final TabController _tabCtrl;
 
-      // Convert everything to ILS
-      double goldValueIls = goldWeight * goldPrice;
-      double usdValueIls = usdAmount * usdRate;
-      
-      // Formula: (Assets + Debts Owed to You) - (Debts You Owe)
-      _totalWealthIls = (goldValueIls + usdValueIls + ilsAmount + debtsToMe) - debtsByMe;
-      if (_totalWealthIls < 0) _totalWealthIls = 0;
-      
-      // Nisab is approximately 85 grams of gold
-      _nisabValueIls = 85 * goldPrice;
-      _nisabReached = _totalWealthIls >= _nisabValueIls && _nisabValueIls > 0;
-
-      if (_nisabReached) {
-        _zakatAmountIls = _totalWealthIls * 0.025;
-      } else {
-        _zakatAmountIls = 0.0;
-      }
-    });
+  @override
+  void initState() {
+    super.initState();
+    _tabCtrl = TabController(length: 3, vsync: this);
+    _tabCtrl.addListener(() => setState(() {}));
+    _loadRates();
   }
 
   @override
   void dispose() {
-    _goldController.dispose();
-    _goldPriceController.dispose();
-    _usdController.dispose();
-    _ilsController.dispose();
-    _usdToIlsController.dispose();
-    _debtsToMeController.dispose();
-    _debtsByMeController.dispose();
+    _tabCtrl.dispose();
+    for (final c in [
+      _goldCtrl,
+      _goldPriceCtrl,
+      _usdCtrl,
+      _iqdCtrl,
+      _usdRateCtrl,
+    ]) {
+      c.dispose();
+    }
     super.dispose();
   }
 
+  Future<void> _loadRates() async {
+    final r = await _service.getZakatRates();
+    if (!mounted) return;
+
+    setState(() {
+      final gp = r['gold_price'] as double? ?? 0;
+      if (gp != 0) _goldPriceCtrl.text = gp.toStringAsFixed(0);
+
+      final dp = r['dollar_price'] as double? ?? 1500;
+      _usdRateCtrl.text = (dp * 100).toInt().toString();
+
+      _goldNisab = r['gold_nisab'] ?? 85;
+      _moneyNisab = r['money_nisab'] ?? 0;
+
+      _calculate();
+    });
+  }
+
+  void _calculate() {
+    final gold = double.tryParse(_goldCtrl.text) ?? 0;
+    final goldPrice = double.tryParse(_goldPriceCtrl.text) ?? 0;
+    final usd = double.tryParse(_usdCtrl.text) ?? 0;
+    final iqd = double.tryParse(_iqdCtrl.text) ?? 0;
+    final rate = (double.tryParse(_usdRateCtrl.text) ?? 150000) / 100;
+
+    final total = (gold * goldPrice) + (usd * rate) + iqd;
+    final nisab = _moneyNisab > 0 ? _moneyNisab : (_goldNisab * goldPrice);
+
+    setState(() {
+      _total = total;
+      _nisabIqd = nisab;
+      _nisabMet = total >= nisab && nisab > 0;
+      _zakat = _nisabMet ? total * 0.025 : 0;
+    });
+  }
+
+  String _fmt(double v) => v.toStringAsFixed(0).replaceAllMapped(
+    RegExp(r'(\d)(?=(\d{3})+(?!\d))'),
+        (m) => '${m[1]},',
+  );
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: _deepSpace,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        centerTitle: true,
-        title: Text(
-          'زەکات حیسابکردن',
-          style: KurdishStyles.getTitleStyle(color: _starlight),
-        ),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_rounded, color: _starlight),
-          onPressed: () => Navigator.pop(context),
+    return Directionality(
+      textDirection: TextDirection.rtl,
+      child: AnnotatedRegion<SystemUiOverlayStyle>(
+        value: SystemUiOverlayStyle.light,
+        child: Scaffold(
+          backgroundColor: _T.bg,
+          body: Stack(
+            children: [
+              _buildBackgroundGlow(),
+              SafeArea(
+                child: Column(
+                  children: [
+                    _buildHeader(),
+                    Expanded(
+                      child: SingleChildScrollView(
+                        physics: const BouncingScrollPhysics(),
+                        padding: const EdgeInsets.only(bottom: 32),
+                        child: Column(
+                          children: [
+                            const SizedBox(height: 8),
+                            _buildHeroCard(),
+                            const SizedBox(height: 16),
+                            _buildQuickStats(),
+                            const SizedBox(height: 18),
+                            _buildTabs(),
+                            const SizedBox(height: 16),
+                            _buildTabContent(),
+                            const SizedBox(height: 24),
+                            _buildCalculateButton(),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
-      body: Stack(
+    );
+  }
+
+  // ──────────────────────────────────────────
+  // Background
+  // ──────────────────────────────────────────
+  Widget _buildBackgroundGlow() {
+    return Stack(
+      children: [
+        Positioned(
+          top: -80,
+          right: -40,
+          child: Container(
+            width: 220,
+            height: 220,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: _T.primary.withOpacity(0.18),
+            ),
+          ),
+        ),
+        Positioned(
+          top: 130,
+          left: -50,
+          child: Container(
+            width: 180,
+            height: 180,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: _T.blue.withOpacity(0.10),
+            ),
+          ),
+        ),
+        Positioned.fill(
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 90, sigmaY: 90),
+            child: const SizedBox(),
+          ),
+        ),
+      ],
+    );
+  }
+
+  // ──────────────────────────────────────────
+  // Header
+  // ──────────────────────────────────────────
+  Widget _buildHeader() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 14, 20, 10),
+      child: Row(
         children: [
-          const Positioned.fill(child: _StarfieldBackground()),
-          SafeArea(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(20),
+          _IconGlassButton(
+            icon: Icons.arrow_back_ios_new_rounded,
+            onTap: () => Navigator.maybePop(context),
+          ),
+          const Spacer(),
+          Column(
+            children: const [
+              Text(
+                'زەکات',
+                style: TextStyle(
+                  color: _T.text,
+                  fontSize: 20,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+              SizedBox(height: 2),
+              Text(
+                'حیسابکردنی زەکات بە شێوەی مۆدێرن',
+                style: TextStyle(
+                  color: _T.muted,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+          const Spacer(),
+          const _IconGlassButton(icon: Icons.info_outline_rounded),
+        ],
+      ),
+    );
+  }
+
+  // ──────────────────────────────────────────
+  // Hero
+  // ──────────────────────────────────────────
+  Widget _buildHeroCard() {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 20),
+      padding: const EdgeInsets.all(22),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(28),
+        gradient: LinearGradient(
+          colors: _nisabMet
+              ? [
+            const Color(0xFF0B1E1A),
+            const Color(0xFF10261E),
+          ]
+              : [
+            const Color(0xFF161F34),
+            const Color(0xFF0F172A),
+          ],
+          begin: Alignment.topRight,
+          end: Alignment.bottomLeft,
+        ),
+        border: Border.all(
+          color: _nisabMet
+              ? _T.green.withOpacity(0.35)
+              : Colors.white.withOpacity(0.08),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: (_nisabMet ? _T.green : _T.primary).withOpacity(0.12),
+            blurRadius: 28,
+            spreadRadius: 1,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildStatusPill(),
+          const SizedBox(height: 18),
+          const Text(
+            'کۆی گشتی سامان',
+            style: TextStyle(
+              color: _T.muted,
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 8),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Row(
+              children: [
+                Text(
+                  _fmt(_total),
+                  style: const TextStyle(
+                    color: _T.text,
+                    fontSize: 40,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: -1.5,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                const Text(
+                  'IQD',
+                  style: TextStyle(
+                    color: _T.muted,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 18),
+          Container(
+            height: 1,
+            color: Colors.white.withOpacity(0.08),
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(
+                child: _MetricBox(
+                  label: 'بڕی زەکات',
+                  value: _fmt(_zakat),
+                  suffix: 'IQD',
+                  valueColor: _nisabMet ? _T.green : _T.text,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: _MetricBox(
+                  label: 'نیساب',
+                  value: _nisabIqd > 0 ? _fmt(_nisabIqd) : '—',
+                  suffix: 'IQD',
+                  valueColor: _T.gold,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatusPill() {
+    final color = _nisabMet ? _T.green : _T.red;
+    final bg = color.withOpacity(0.12);
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: color.withOpacity(0.25)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 8,
+            height: 8,
+            decoration: BoxDecoration(
+              color: color,
+              shape: BoxShape.circle,
+            ),
+          ),
+          const SizedBox(width: 8),
+          Text(
+            _nisabMet ? 'نیساب پڕ بووە' : 'نیساب پڕ نەبووە',
+            style: TextStyle(
+              color: color,
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ──────────────────────────────────────────
+  // Quick stats
+  // ──────────────────────────────────────────
+  Widget _buildQuickStats() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Row(
+        children: [
+          Expanded(
+            child: _MiniInfoCard(
+              title: 'زێڕ',
+              value: '${_goldCtrl.text.isEmpty ? 0 : _goldCtrl.text} گرام',
+              icon: Icons.workspace_premium_outlined,
+              iconColor: _T.gold,
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: _MiniInfoCard(
+              title: 'دۆلار',
+              value: '${_usdCtrl.text.isEmpty ? 0 : _usdCtrl.text} USD',
+              icon: Icons.attach_money_rounded,
+              iconColor: _T.blue,
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: _MiniInfoCard(
+              title: 'دینار',
+              value: '${_iqdCtrl.text.isEmpty ? 0 : _iqdCtrl.text} IQD',
+              icon: Icons.account_balance_wallet_outlined,
+              iconColor: _T.green,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ──────────────────────────────────────────
+  // Tabs
+  // ──────────────────────────────────────────
+  Widget _buildTabs() {
+    const labels = ['نرخ', 'سامان', 'نیساب'];
+
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 20),
+      padding: const EdgeInsets.all(5),
+      decoration: BoxDecoration(
+        color: _T.surface,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: _T.border),
+      ),
+      child: Row(
+        children: List.generate(labels.length, (index) {
+          final isActive = _tabCtrl.index == index;
+          return Expanded(
+            child: GestureDetector(
+              onTap: () => _tabCtrl.animateTo(index),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 220),
+                curve: Curves.easeOut,
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(14),
+                  gradient: isActive
+                      ? const LinearGradient(
+                    colors: [_T.primary, _T.primary2],
+                  )
+                      : null,
+                  color: isActive ? null : Colors.transparent,
+                ),
+                child: Text(
+                  labels[index],
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: isActive ? Colors.white : _T.muted,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+            ),
+          );
+        }),
+      ),
+    );
+  }
+
+  Widget _buildTabContent() {
+    switch (_tabCtrl.index) {
+      case 0:
+        return _buildRatesTab();
+      case 1:
+        return _buildAssetsTab();
+      default:
+        return _buildNisabTab();
+    }
+  }
+
+  Widget _buildRatesTab() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Column(
+        children: [
+          _SectionHeader(
+            title: 'نرخەکانی بازاڕ',
+            subtitle: 'نرخی زێڕ و دۆلار داخل بکە',
+          ),
+          const SizedBox(height: 14),
+          _ModernInputField(
+            label: 'نرخی ١ گرام زێڕ',
+            hint: '0',
+            controller: _goldPriceCtrl,
+            icon: Icons.workspace_premium_outlined,
+            accent: _T.gold,
+            onChanged: (_) => _calculate(),
+          ),
+          const SizedBox(height: 12),
+          _ModernInputField(
+            label: 'نرخی ١٠٠ دۆلار',
+            hint: '150000',
+            controller: _usdRateCtrl,
+            icon: Icons.currency_exchange_rounded,
+            accent: _T.blue,
+            onChanged: (_) => _calculate(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAssetsTab() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Column(
+        children: [
+          _SectionHeader(
+            title: 'سامانەکانت',
+            subtitle: 'بڕی سامانەکانی خۆت داخل بکە',
+          ),
+          const SizedBox(height: 14),
+          _ModernInputField(
+            label: 'زێڕ (گرام)',
+            hint: '0',
+            controller: _goldCtrl,
+            icon: Icons.savings_outlined,
+            accent: _T.gold,
+            onChanged: (_) => _calculate(),
+          ),
+          const SizedBox(height: 12),
+          _ModernInputField(
+            label: 'دۆلار (USD)',
+            hint: '0',
+            controller: _usdCtrl,
+            icon: Icons.attach_money_rounded,
+            accent: _T.blue,
+            onChanged: (_) => _calculate(),
+          ),
+          const SizedBox(height: 12),
+          _ModernInputField(
+            label: 'دینار عێراقی (IQD)',
+            hint: '0',
+            controller: _iqdCtrl,
+            icon: Icons.payments_outlined,
+            accent: _T.green,
+            onChanged: (_) => _calculate(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildNisabTab() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Column(
+        children: [
+          _SectionHeader(
+            title: 'زانیاری نیساب',
+            subtitle: 'بنەمای حیسابکردنی زەکات',
+          ),
+          const SizedBox(height: 14),
+          Row(
+            children: [
+              Expanded(
+                child: _InfoDataCard(
+                  title: 'نیسابی زێڕ',
+                  value: _goldNisab.toStringAsFixed(0),
+                  unit: 'گرام',
+                ),
+              ),
+              SizedBox(width: 12),
+              Expanded(
+                child: _InfoDataCard(
+                  title: 'نیسابی زیو',
+                  value: '595',
+                  unit: 'گرام',
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          _WideInfoCard(
+            title: 'نیساب بە دینار',
+            value: _nisabIqd > 0 ? _fmt(_nisabIqd) : '—',
+            unit: 'IQD',
+          ),
+          const SizedBox(height: 12),
+          const _RuleTile(label: 'ڕێژەی زەکاتی مال', value: '٢.٥٪'),
+          const SizedBox(height: 10),
+          const _RuleTile(label: 'ڕێژەی زەکاتی کشتوکاڵ', value: '٥٪ یان ١٠٪'),
+          const SizedBox(height: 10),
+          const _RuleTile(label: 'ماوەی حول', value: '١ ساڵ'),
+        ],
+      ),
+    );
+  }
+
+  // ──────────────────────────────────────────
+  // Button
+  // ──────────────────────────────────────────
+  Widget _buildCalculateButton() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(20),
+        onTap: _calculate,
+        child: Ink(
+          height: 58,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(20),
+            gradient: const LinearGradient(
+              colors: [_T.primary, _T.primary2],
+              begin: Alignment.centerRight,
+              end: Alignment.centerLeft,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: _T.primary.withOpacity(0.28),
+                blurRadius: 22,
+                offset: const Offset(0, 10),
+              ),
+            ],
+          ),
+          child: const Center(
+            child: Text(
+              'ئێستا حیساب بکە',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 16,
+                fontWeight: FontWeight.w800,
+                letterSpacing: 0.2,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ──────────────────────────────────────────────
+// Reusable Widgets
+// ──────────────────────────────────────────────
+class _IconGlassButton extends StatelessWidget {
+  final IconData icon;
+  final VoidCallback? onTap;
+
+  const _IconGlassButton({
+    required this.icon,
+    this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(16),
+      child: Ink(
+        width: 44,
+        height: 44,
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.06),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: Colors.white.withOpacity(0.08)),
+        ),
+        child: Icon(icon, color: _T.text, size: 18),
+      ),
+    );
+  }
+}
+
+class _MetricBox extends StatelessWidget {
+  final String label;
+  final String value;
+  final String suffix;
+  final Color valueColor;
+
+  const _MetricBox({
+    required this.label,
+    required this.value,
+    required this.suffix,
+    required this.valueColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.05),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: Colors.white.withOpacity(0.06)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: const TextStyle(
+              color: _T.muted,
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 6),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Row(
+              children: [
+                Text(
+                  value,
+                  style: TextStyle(
+                    color: valueColor,
+                    fontSize: 19,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  suffix,
+                  style: const TextStyle(
+                    color: _T.muted,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _MiniInfoCard extends StatelessWidget {
+  final String title;
+  final String value;
+  final IconData icon;
+  final Color iconColor;
+
+  const _MiniInfoCard({
+    required this.title,
+    required this.value,
+    required this.icon,
+    required this.iconColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: _T.surface,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: _T.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 34,
+            height: 34,
+            decoration: BoxDecoration(
+              color: iconColor.withOpacity(0.12),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(icon, color: iconColor, size: 17),
+          ),
+          const SizedBox(height: 10),
+          Text(
+            title,
+            style: const TextStyle(
+              color: _T.muted,
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 3),
+          Text(
+            value,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              color: _T.text,
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SectionHeader extends StatelessWidget {
+  final String title;
+  final String subtitle;
+
+  const _SectionHeader({
+    required this.title,
+    required this.subtitle,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: _T.surface.withOpacity(0.85),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: _T.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: const TextStyle(
+              color: _T.text,
+              fontSize: 14,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            subtitle,
+            style: const TextStyle(
+              color: _T.muted,
+              fontSize: 11,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ModernInputField extends StatefulWidget {
+  final String label;
+  final String hint;
+  final TextEditingController controller;
+  final IconData icon;
+  final Color accent;
+  final ValueChanged<String> onChanged;
+
+  const _ModernInputField({
+    required this.label,
+    required this.hint,
+    required this.controller,
+    required this.icon,
+    required this.accent,
+    required this.onChanged,
+  });
+
+  @override
+  State<_ModernInputField> createState() => _ModernInputFieldState();
+}
+
+class _ModernInputFieldState extends State<_ModernInputField> {
+  bool _focused = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 220),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+      decoration: BoxDecoration(
+        color: _T.surface2,
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(
+          color: _focused
+              ? widget.accent.withOpacity(0.65)
+              : _T.border.withOpacity(0.9),
+          width: 1.2,
+        ),
+        boxShadow: _focused
+            ? [
+          BoxShadow(
+            color: widget.accent.withOpacity(0.12),
+            blurRadius: 18,
+            offset: const Offset(0, 8),
+          )
+        ]
+            : null,
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 46,
+            height: 46,
+            decoration: BoxDecoration(
+              color: widget.accent.withOpacity(0.12),
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: Icon(widget.icon, color: widget.accent, size: 20),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Focus(
+              onFocusChange: (f) => setState(() => _focused = f),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildIntroCard(),
-                  const SizedBox(height: 24),
-                  
-                  _buildSectionTitle('نرخەکانی بازاڕ'),
-                  const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _buildInputCard(
-                          title: 'نرخی ١ گرام ئاڵتوون (شیکڵ)',
-                          controller: _goldPriceController,
-                          icon: '💰',
-                          color: Colors.amber,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: _buildInputCard(
-                          title: 'نرخی ١ دۆلار (شیکڵ)',
-                          controller: _usdToIlsController,
-                          icon: '💹',
-                          color: Colors.green,
-                        ),
+                  Text(
+                    widget.label,
+                    style: const TextStyle(
+                      color: _T.muted,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  TextField(
+                    controller: widget.controller,
+                    onChanged: widget.onChanged,
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
+                    inputFormatters: [
+                      FilteringTextInputFormatter.allow(
+                        RegExp(r'^\d*\.?\d*'),
                       ),
                     ],
+                    style: const TextStyle(
+                      color: _T.text,
+                      fontSize: 17,
+                      fontWeight: FontWeight.w800,
+                    ),
+                    decoration: InputDecoration(
+                      border: InputBorder.none,
+                      hintText: widget.hint,
+                      hintStyle: const TextStyle(
+                        color: _T.faint,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
                   ),
-                  
-                  const SizedBox(height: 24),
-                  _buildSectionTitle('سەرمایەکەت'),
-                  const SizedBox(height: 12),
-                  _buildInputCard(
-                    title: 'بڕی ئاڵتوون (گرام)',
-                    controller: _goldController,
-                    icon: '🟡',
-                    color: Colors.amber,
-                  ),
-                  const SizedBox(height: 12),
-                  _buildInputCard(
-                    title: 'بڕی دۆلار (USD)',
-                    controller: _usdController,
-                    icon: '💵',
-                    color: Colors.green,
-                  ),
-                  const SizedBox(height: 12),
-                  _buildInputCard(
-                    title: 'بڕی شیکڵ (ILS)',
-                    controller: _ilsController,
-                    icon: '🏦',
-                    color: Colors.blueAccent,
-                  ),
-
-                  const SizedBox(height: 24),
-                  _buildSectionTitle('قەرزەکان (بە شیکڵ)'),
-                  const SizedBox(height: 12),
-                  _buildInputCard(
-                    title: 'ئەو پارەیەی خەڵک قەرزاری تۆیە',
-                    controller: _debtsToMeController,
-                    icon: '📥',
-                    color: Colors.teal,
-                  ),
-                  const SizedBox(height: 12),
-                  _buildInputCard(
-                    title: 'ئەو پارەیەی تۆ قەرزاری خەڵکیت',
-                    controller: _debtsByMeController,
-                    icon: '📤',
-                    color: Colors.orangeAccent,
-                  ),
-                  
-                  const SizedBox(height: 32),
-                  _buildResultSection(),
-                  const SizedBox(height: 40),
                 ],
               ),
             ),
@@ -183,206 +957,168 @@ class _ZakatScreenState extends State<ZakatScreen> {
       ),
     );
   }
+}
 
-  Widget _buildIntroCard() {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: _accent.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: _accent.withOpacity(0.2)),
-      ),
-      child: Text(
-        'بۆ ئەنجامێکی ورد، هەموو سەرمایەکەت و ئەو قەرزانەی لەسەرتە یان لای خەڵکە بنووسە بە شیکڵ.',
-        style: KurdishStyles.getKurdishStyle(color: _moonGlow, fontSize: 14),
-        textAlign: TextAlign.center,
-        textDirection: TextDirection.rtl,
-      ),
-    );
-  }
+class _InfoDataCard extends StatelessWidget {
+  final String title;
+  final String value;
+  final String unit;
 
-  Widget _buildSectionTitle(String title) {
-    return Text(
-      title,
-      style: KurdishStyles.getKurdishStyle(color: _accent, fontSize: 16, fontWeight: FontWeight.bold),
-      textAlign: TextAlign.right,
-      textDirection: TextDirection.rtl,
-    );
-  }
+  const _InfoDataCard({
+    required this.title,
+    required this.value,
+    required this.unit,
+  });
 
-  Widget _buildInputCard({
-    required String title,
-    required TextEditingController controller,
-    required String icon,
-    required Color color,
-  }) {
+  @override
+  Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: _nebula,
+        color: _T.surface,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: color.withOpacity(0.2)),
+        border: Border.all(color: _T.border),
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.end,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(icon, style: const TextStyle(fontSize: 20)),
-              Expanded(
-                child: Text(
-                  title,
-                  style: KurdishStyles.getKurdishStyle(color: _starlight.withOpacity(0.8), fontSize: 12),
-                  textAlign: TextAlign.right,
-                  textDirection: TextDirection.rtl,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          TextField(
-            controller: controller,
-            keyboardType: TextInputType.number,
-            textAlign: TextAlign.right,
-            style: KurdishStyles.getKurdishStyle(color: _starlight, fontSize: 18, fontWeight: FontWeight.bold),
-            decoration: InputDecoration(
-              hintText: '0',
-              hintStyle: TextStyle(color: _starlight.withOpacity(0.2)),
-              isDense: true,
-              contentPadding: const EdgeInsets.symmetric(vertical: 8),
-              border: InputBorder.none,
+          Text(
+            title,
+            style: const TextStyle(
+              color: _T.muted,
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
             ),
-            onChanged: (value) => _calculateZakat(),
+          ),
+          const SizedBox(height: 8),
+          RichText(
+            text: TextSpan(
+              children: [
+                TextSpan(
+                  text: value,
+                  style: const TextStyle(
+                    color: _T.text,
+                    fontSize: 20,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                TextSpan(
+                  text: ' $unit',
+                  style: const TextStyle(
+                    color: _T.muted,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
       ),
     );
   }
+}
 
-  Widget _buildResultSection() {
-    return Column(
-      children: [
-        _buildWealthRow('کۆی گشتی سەرمایەی پاکتاو کراو:', _totalWealthIls, _starlight),
-        const SizedBox(height: 12),
-        _buildWealthRow('ڕێژەی نیساب (٨٥گ ئاڵتوون):', _nisabValueIls, _goldColor),
-        const SizedBox(height: 24),
-        
-        Container(
-          padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            color: _nisabReached ? Colors.green.withOpacity(0.1) : Colors.red.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(24),
-            border: Border.all(
-              color: _nisabReached ? Colors.green.withOpacity(0.3) : Colors.red.withOpacity(0.3),
+class _WideInfoCard extends StatelessWidget {
+  final String title;
+  final String value;
+  final String unit;
+
+  const _WideInfoCard({
+    required this.title,
+    required this.value,
+    required this.unit,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: _T.surface,
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: _T.border),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            title,
+            style: const TextStyle(
+              color: _T.muted,
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
             ),
           ),
-          child: Column(
-            children: [
-              Icon(
-                _nisabReached ? Icons.check_circle_outline_rounded : Icons.info_outline_rounded,
-                color: _nisabReached ? Colors.green : Colors.redAccent,
-                size: 48,
-              ),
-              const SizedBox(height: 16),
-              Text(
-                _nisabReached ? 'زەکاتت لەسەر فەرزە' : 'زەکاتت لەسەر فەرز نییە',
-                style: KurdishStyles.getTitleStyle(
-                  color: _nisabReached ? Colors.green : Colors.redAccent,
-                  fontSize: 20,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                _nisabReached 
-                  ? 'سەرمایەکەت دوای لێدەرکردنی قەرزەکان، گەیشتووەتە ئاستی نیساب.'
-                  : 'سەرمایەکەت دوای لێدەرکردنی قەرزەکان، هێشتا نەگەیشتووەتە ئاستی نیساب.',
-                style: KurdishStyles.getKurdishStyle(color: _moonGlow.withOpacity(0.7), fontSize: 13),
-                textAlign: TextAlign.center,
-                textDirection: TextDirection.rtl,
-              ),
-              if (_nisabReached) ...[
-                const SizedBox(height: 24),
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    color: Colors.green.withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(16),
+          RichText(
+            text: TextSpan(
+              children: [
+                TextSpan(
+                  text: value,
+                  style: const TextStyle(
+                    color: _T.gold,
+                    fontSize: 22,
+                    fontWeight: FontWeight.w900,
                   ),
-                  child: Column(
-                    children: [
-                      Text(
-                        'بڕی پارەی زەکات بۆ دان:',
-                        style: KurdishStyles.getKurdishStyle(color: Colors.green, fontSize: 14),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        '${_formatMoney(_zakatAmountIls)} شیکڵ',
-                        style: KurdishStyles.getKurdishStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
-                      ),
-                    ],
+                ),
+                TextSpan(
+                  text: ' $unit',
+                  style: const TextStyle(
+                    color: _T.muted,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
               ],
-            ],
+            ),
           ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildWealthRow(String label, double value, Color color) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      textDirection: TextDirection.rtl,
-      children: [
-        Expanded(
-          child: Text(
-            label,
-            style: KurdishStyles.getKurdishStyle(color: _moonGlow.withOpacity(0.6), fontSize: 14),
-            textAlign: TextAlign.right,
-          ),
-        ),
-        const SizedBox(width: 8),
-        Text(
-          '${_formatMoney(value)} شیکڵ',
-          style: KurdishStyles.getKurdishStyle(color: color, fontSize: 16, fontWeight: FontWeight.bold),
-        ),
-      ],
-    );
-  }
-
-  String _formatMoney(double value) {
-    return value.toStringAsFixed(2).replaceAllMapped(
-      RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
-      (Match m) => '${m[1]},',
+        ],
+      ),
     );
   }
 }
 
-class _StarfieldBackground extends StatelessWidget {
-  const _StarfieldBackground();
-  @override
-  Widget build(BuildContext context) => CustomPaint(painter: _StarfieldPainter());
-}
+class _RuleTile extends StatelessWidget {
+  final String label;
+  final String value;
 
-class _StarfieldPainter extends CustomPainter {
-  static final _stars = List.generate(60, (i) {
-    final rng = math.Random(i * 137);
-    return Offset(rng.nextDouble(), rng.nextDouble());
+  const _RuleTile({
+    required this.label,
+    required this.value,
   });
+
   @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint();
-    for (int i = 0; i < _stars.length; i++) {
-      final rng = math.Random(i * 137);
-      final radius = rng.nextDouble() * 1.2 + 0.3;
-      final opacity = rng.nextDouble() * 0.4 + 0.1;
-      paint.color = Colors.white.withOpacity(opacity);
-      canvas.drawCircle(Offset(_stars[i].dx * size.width, _stars[i].dy * size.height), radius, paint);
-    }
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      decoration: BoxDecoration(
+        color: _T.surface,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: _T.border),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              label,
+              style: const TextStyle(
+                color: _T.text,
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+          Text(
+            value,
+            style: const TextStyle(
+              color: _T.primary,
+              fontSize: 14,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+        ],
+      ),
+    );
   }
-  @override
-  bool shouldRepaint(covariant CustomPainter old) => false;
 }

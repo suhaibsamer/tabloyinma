@@ -5,6 +5,12 @@ import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'package:tabloy_iman/services/notification_service.dart';
 import 'package:tabloy_iman/services/theme_manager.dart';
+import 'package:tabloy_iman/services/quran_audio_service.dart';
+import 'package:tabloy_iman/services/audio_preferences_service.dart';
+import 'package:tabloy_iman/services/widget_sync_service.dart';
+import 'package:provider/provider.dart';
+
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 void main() async {
   try {
@@ -14,6 +20,14 @@ void main() async {
       options: DefaultFirebaseOptions.currentPlatform,
     );
     debugPrint('Firebase initialized.');
+    
+    debugPrint('AudioPreferencesService initializing...');
+    await AudioPreferencesService().init();
+    debugPrint('AudioPreferencesService initialized.');
+
+    debugPrint('QuranAudioService initializing...');
+    await QuranAudioService.init();
+    debugPrint('QuranAudioService initialized.');
     
     debugPrint('NotificationService initializing...');
     await NotificationService().initialize();
@@ -26,12 +40,30 @@ void main() async {
     debugPrint('Date formatting initializing...');
     await initializeDateFormatting('en_US', null);
     debugPrint('Date formatting initialized.');
+
+    // Sync widget data
+    WidgetSyncService.syncData();
     
-    runApp(const MyApp());
+    runApp(
+      MultiProvider(
+        providers: [
+          ChangeNotifierProvider.value(value: QuranAudioService.handler),
+          ChangeNotifierProvider.value(value: AudioPreferencesService()),
+        ],
+        child: const MyApp(),
+      ),
+    );
   } catch (e) {
     debugPrint('FATAL ERROR in main: $e');
-    // Still try to run the app even if initialization fails
-    runApp(const MyApp());
+    runApp(
+      MultiProvider(
+        providers: [
+          ChangeNotifierProvider.value(value: QuranAudioService.handler),
+          ChangeNotifierProvider.value(value: AudioPreferencesService()),
+        ],
+        child: const MyApp(),
+      ),
+    );
   }
 }
 
@@ -44,6 +76,7 @@ class MyApp extends StatelessWidget {
       valueListenable: ThemeManager().themeMode,
       builder: (context, themeMode, _) {
         return MaterialApp(
+          navigatorKey: navigatorKey,
           title: 'Tabloy Iman',
           debugShowCheckedModeBanner: false,
           themeMode: themeMode,

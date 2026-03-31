@@ -1,7 +1,8 @@
+import 'dart:math' as math;
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../../models/prayer_request.dart';
 import '../../services/prayer_service.dart';
-import 'dart:math' as math;
 
 class PrayerWallScreen extends StatefulWidget {
   const PrayerWallScreen({super.key});
@@ -13,315 +14,512 @@ class PrayerWallScreen extends StatefulWidget {
 class _PrayerWallScreenState extends State<PrayerWallScreen>
     with SingleTickerProviderStateMixin {
   final PrayerService _prayerService = PrayerService();
-  final TextEditingController _controller = TextEditingController();
-  final TextEditingController _nameController = TextEditingController();
-  final FocusNode _focusNode = FocusNode();
-  final FocusNode _nameFocusNode = FocusNode();
+
   late AnimationController _fadeController;
   late Animation<double> _fadeAnimation;
-  bool _isFocused = false;
-  bool _isNameFocused = false;
 
-  // --- Design Tokens ---
-  static const _canvas = Color(0xFF0A0C14);
-  static const _surfaceElevated = Color(0xFF181D2E);
-  static const _rimLight = Color(0xFF252D44);
-
-  static const _gold = Color(0xFFD4A853);
-  static const _goldDim = Color(0x66D4A853); // Fixed hex
-
-  static const _jade = Color(0xFF3ECFA0);
-  static const _jadeDim = Color(0x4D3ECFA0); // Fixed hex
-
-  static const _inkPrimary = Color(0xFFF2EFE8);
-  static const _inkSecondary = Color(0xFF9A9EB8);
-  static const _inkTertiary = Color(0xFF4A4F6A);
+  static const _bg = Color(0xFF070B14);
+  static const _bg2 = Color(0xFF0D1324);
+  static const _surface = Color(0xFF121A2F);
+  static const _surface2 = Color(0xFF18233D);
+  static const _textPrimary = Color(0xFFF8F7FC);
+  static const _textSecondary = Color(0xFFB9C2D0);
+  static const _textMuted = Color(0xFF6F7A8B);
+  static const _accent = Color(0xFF7C5CFF);
+  static const _accent2 = Color(0xFF46C2FF);
+  static const _gold = Color(0xFFFFC96B);
+  static const _green = Color(0xFF38D39F);
 
   @override
   void initState() {
     super.initState();
     _fadeController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 600),
+      duration: const Duration(milliseconds: 650),
     );
     _fadeAnimation = CurvedAnimation(
       parent: _fadeController,
       curve: Curves.easeOut,
     );
     _fadeController.forward();
-
-    _focusNode.addListener(() {
-      setState(() => _isFocused = _focusNode.hasFocus);
-    });
-    _nameFocusNode.addListener(() {
-      setState(() => _isNameFocused = _nameFocusNode.hasFocus);
-    });
   }
 
   @override
   void dispose() {
     _fadeController.dispose();
-    _focusNode.dispose();
-    _nameFocusNode.dispose();
-    _controller.dispose();
-    _nameController.dispose();
     super.dispose();
   }
 
-  void _submitRequest() {
-    if (_controller.text.trim().isEmpty) return;
-    String name = _nameController.text.trim();
-    if (name.isEmpty) name = 'بێ ناو';
-    _prayerService.addPrayerRequest(_controller.text.trim(), name);
-    _controller.clear();
-    _nameController.clear();
-    FocusScope.of(context).unfocus();
-    _showToast();
+  Future<void> _showAddPrayerDialog() async {
+    final nameController = TextEditingController();
+    final contentController = TextEditingController();
+    final nameFocus = FocusNode();
+    final contentFocus = FocusNode();
+
+    await showDialog(
+      context: context,
+      barrierColor: Colors.black.withOpacity(0.75),
+      builder: (context) {
+        return Directionality(
+          textDirection: TextDirection.rtl,
+          child: Dialog(
+            backgroundColor: Colors.transparent,
+            insetPadding: const EdgeInsets.symmetric(horizontal: 20),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(30),
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
+                child: Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(30),
+                    gradient: LinearGradient(
+                      colors: [
+                        _surface.withOpacity(0.96),
+                        _surface2.withOpacity(0.94),
+                      ],
+                      begin: Alignment.topRight,
+                      end: Alignment.bottomLeft,
+                    ),
+                    border: Border.all(color: Colors.white.withOpacity(0.10)),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.24),
+                        blurRadius: 24,
+                        offset: const Offset(0, 14),
+                      ),
+                    ],
+                  ),
+                  child: StatefulBuilder(
+                    builder: (context, setLocal) {
+                      return Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Row(
+                            children: [
+                              GestureDetector(
+                                onTap: () => Navigator.pop(context),
+                                child: Container(
+                                  width: 38,
+                                  height: 38,
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withOpacity(0.06),
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(
+                                      color: Colors.white.withOpacity(0.08),
+                                    ),
+                                  ),
+                                  child: const Icon(
+                                    Icons.close_rounded,
+                                    color: _textSecondary,
+                                    size: 18,
+                                  ),
+                                ),
+                              ),
+                              const Spacer(),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                  vertical: 6,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: _gold.withOpacity(0.12),
+                                  borderRadius: BorderRadius.circular(30),
+                                  border: Border.all(
+                                    color: _gold.withOpacity(0.22),
+                                  ),
+                                ),
+                                child: const Text(
+                                  'دوعای نوێ',
+                                  style: TextStyle(
+                                    color: _gold,
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+                          const Text(
+                            'زیادکردنی پاڕانەوە',
+                            style: TextStyle(
+                              color: _textPrimary,
+                              fontSize: 20,
+                              fontWeight: FontWeight.w900,
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          const Text(
+                            'دەتوانیت بە ناو یان بێ ناو دوعاکەت بنووسیت',
+                            style: TextStyle(
+                              color: _textSecondary,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          const SizedBox(height: 18),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 14,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.04),
+                              borderRadius: BorderRadius.circular(18),
+                              border: Border.all(
+                                color: Colors.white.withOpacity(0.08),
+                              ),
+                            ),
+                            child: TextField(
+                              controller: nameController,
+                              focusNode: nameFocus,
+                              textDirection: TextDirection.rtl,
+                              style: const TextStyle(
+                                color: _textPrimary,
+                                fontSize: 14,
+                                fontWeight: FontWeight.w700,
+                              ),
+                              decoration: const InputDecoration(
+                                hintText: 'ناوەکەت',
+                                hintStyle: TextStyle(
+                                  color: _textMuted,
+                                  fontSize: 13,
+                                ),
+                                border: InputBorder.none,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 14,
+                              vertical: 8,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.04),
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(
+                                color: Colors.white.withOpacity(0.08),
+                              ),
+                            ),
+                            child: TextField(
+                              controller: contentController,
+                              focusNode: contentFocus,
+                              textDirection: TextDirection.rtl,
+                              maxLines: 5,
+                              minLines: 4,
+                              style: const TextStyle(
+                                color: _textPrimary,
+                                fontSize: 15,
+                                height: 1.8,
+                              ),
+                              decoration: const InputDecoration(
+                                hintText:
+                                'چی لە دڵتە لێرە بینووسە بۆ ئەوەی خەڵکی دوعات بۆ بکات...',
+                                hintStyle: TextStyle(
+                                  color: _textMuted,
+                                  fontSize: 13,
+                                  height: 1.5,
+                                ),
+                                border: InputBorder.none,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: OutlinedButton(
+                                  onPressed: () => Navigator.pop(context),
+                                  style: OutlinedButton.styleFrom(
+                                    side: BorderSide(
+                                      color: Colors.white.withOpacity(0.10),
+                                    ),
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 14,
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(16),
+                                    ),
+                                  ),
+                                  child: const Text(
+                                    'هەڵوەشاندنەوە',
+                                    style: TextStyle(
+                                      color: _textSecondary,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: ElevatedButton(
+                                  onPressed: () {
+                                    final content =
+                                    contentController.text.trim();
+                                    String name = nameController.text.trim();
+
+                                    if (content.isEmpty) return;
+                                    if (name.isEmpty) name = 'بێ ناو';
+
+                                    _prayerService.addPrayerRequest(
+                                      content,
+                                      name,
+                                    );
+
+                                    Navigator.pop(context);
+                                    _showToast();
+                                  },
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: _accent,
+                                    foregroundColor: Colors.white,
+                                    elevation: 0,
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 14,
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(16),
+                                    ),
+                                  ),
+                                  child: const Text(
+                                    'ناردن',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.w800,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      );
+                    },
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+
+    nameController.dispose();
+    contentController.dispose();
+    nameFocus.dispose();
+    contentFocus.dispose();
   }
 
   void _showToast() {
     ScaffoldMessenger.of(context).clearSnackBars();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
+        backgroundColor: _surface2,
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.all(16),
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(18),
+          side: BorderSide(color: _green.withOpacity(0.25)),
+        ),
         content: Row(
+          textDirection: TextDirection.rtl,
           children: [
             Container(
-              width: 32,
-              height: 32,
-              decoration: const BoxDecoration(
-                color: _jadeDim,
+              width: 34,
+              height: 34,
+              decoration: BoxDecoration(
+                color: _green.withOpacity(0.14),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.check, color: _jade, size: 16),
+              child: const Icon(Icons.check_rounded, color: _green, size: 18),
             ),
-            const SizedBox(width: 12),
-            const Text(
-              'داواکارییەکەت نێردرا، خودا لێت وەربگرێت',
-              style: TextStyle(
-                color: _inkPrimary,
-                fontSize: 13,
-                fontWeight: FontWeight.w500,
+            const SizedBox(width: 10),
+            const Expanded(
+              child: Text(
+                'داواکارییەکەت نێردرا، خودا لێت وەربگرێت',
+                textDirection: TextDirection.rtl,
+                style: TextStyle(
+                  color: _textPrimary,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                ),
               ),
-              textDirection: TextDirection.rtl,
             ),
           ],
         ),
-        backgroundColor: _surfaceElevated,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(14),
-          side: BorderSide(color: _jade.withAlpha(60)),
-        ),
-        margin: const EdgeInsets.all(16),
-        elevation: 0,
-        duration: const Duration(seconds: 3),
       ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: _canvas,
-      body: Stack(
-        children: [
-          const Positioned.fill(child: _AmbientBackground()),
-          SafeArea(
-            child: FadeTransition(
-              opacity: _fadeAnimation,
-              child: Column(
-                children: [
-                  _buildHeader(),
-                  _buildInputSection(),
-                  _buildDivider(),
-                  Expanded(child: _buildPrayerList()),
-                ],
+    return Directionality(
+      textDirection: TextDirection.rtl,
+      child: Scaffold(
+        backgroundColor: _bg,
+        floatingActionButton: FloatingActionButton.extended(
+          onPressed: _showAddPrayerDialog,
+          backgroundColor: _accent,
+          foregroundColor: Colors.white,
+          elevation: 8,
+          icon: const Icon(Icons.add_rounded),
+          label: const Text(
+            'زیادکردنی دوعا',
+            style: TextStyle(fontWeight: FontWeight.w800),
+          ),
+        ),
+        body: Stack(
+          children: [
+            const Positioned.fill(child: _ModernBackground()),
+            SafeArea(
+              child: FadeTransition(
+                opacity: _fadeAnimation,
+                child: Column(
+                  children: [
+                    _buildHeader(),
+                    const SizedBox(height: 14),
+                    _buildHeroCard(),
+                    const SizedBox(height: 16),
+                    _buildDivider(),
+                    const SizedBox(height: 10),
+                    Expanded(child: _buildPrayerList()),
+                  ],
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildHeader() {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
       child: Row(
         children: [
           GestureDetector(
             onTap: () => Navigator.of(context).maybePop(),
             child: Container(
-              width: 38,
-              height: 38,
+              width: 42,
+              height: 42,
               decoration: BoxDecoration(
-                color: _surfaceElevated,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: _rimLight),
+                color: Colors.white.withOpacity(0.08),
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: Colors.white.withOpacity(0.10)),
               ),
-              child: const Icon(Icons.arrow_back_ios_new_rounded,
-                  color: _inkSecondary, size: 15),
+              child: const Icon(
+                Icons.arrow_back_ios_new_rounded,
+                color: _textPrimary,
+                size: 18,
+              ),
             ),
           ),
           const Expanded(
-            child: Column(
-              children: [
-                Text(
-                  'دیواری دوعا و پاڕانەوە',
-                  textDirection: TextDirection.rtl,
-                  style: TextStyle(
-                    color: _inkPrimary,
-                    fontSize: 17,
-                    fontWeight: FontWeight.w600,
-                    letterSpacing: 0.3,
-                  ),
+            child: Center(
+              child: Text(
+                'دیواری دوعا',
+                style: TextStyle(
+                  color: _textPrimary,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w900,
                 ),
-                SizedBox(height: 2),
-                Text(
-                  'دووعاکانت گوێیان لێ دەدرێت',
-                  textDirection: TextDirection.rtl,
-                  style: TextStyle(
-                    color: _inkTertiary,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w400,
-                  ),
-                ),
-              ],
+              ),
             ),
           ),
-          const SizedBox(width: 38),
+          GestureDetector(
+            onTap: _showAddPrayerDialog,
+            child: Container(
+              width: 42,
+              height: 42,
+              decoration: BoxDecoration(
+                color: _accent.withOpacity(0.18),
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: _accent.withOpacity(0.25)),
+              ),
+              child: const Icon(
+                Icons.add_rounded,
+                color: _accent,
+                size: 22,
+              ),
+            ),
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildInputSection() {
+  Widget _buildHeroCard() {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 20, 16, 0),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        curve: Curves.easeOut,
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: _surfaceElevated,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: (_isFocused || _isNameFocused) ? _gold.withAlpha(100) : _rimLight,
-            width: (_isFocused || _isNameFocused) ? 1.5 : 1.0,
-          ),
-          boxShadow: (_isFocused || _isNameFocused)
-              ? [
-            BoxShadow(
-              color: _gold.withAlpha(20),
-              blurRadius: 20,
-              spreadRadius: 2,
-            )
-          ]
-              : [],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            TextField(
-              controller: _nameController,
-              focusNode: _nameFocusNode,
-              textDirection: TextDirection.rtl,
-              style: const TextStyle(
-                color: _inkPrimary,
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(28),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
+          child: Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(28),
+              gradient: LinearGradient(
+                colors: [
+                  _accent.withOpacity(0.26),
+                  _accent2.withOpacity(0.18),
+                ],
+                begin: Alignment.topRight,
+                end: Alignment.bottomLeft,
               ),
-              decoration: const InputDecoration(
-                hintText: 'ناوەکەت (یان بێ ناو)...',
-                hintStyle: TextStyle(
-                  color: _inkTertiary,
-                  fontSize: 13,
-                ),
-                border: InputBorder.none,
-                isDense: true,
-                contentPadding: EdgeInsets.only(bottom: 8),
-              ),
+              border: Border.all(color: Colors.white.withOpacity(0.10)),
             ),
-            const Divider(color: _rimLight, height: 1),
-            const SizedBox(height: 8),
-            TextField(
-              controller: _controller,
-              focusNode: _focusNode,
-              textDirection: TextDirection.rtl,
-              style: const TextStyle(
-                color: _inkPrimary,
-                fontSize: 14,
-                height: 1.6,
-              ),
-              decoration: const InputDecoration(
-                hintText:
-                'چی لە دڵتە لێرە بینوسە بۆ ئەوەی خەڵکی دوعات بۆ بکات...',
-                hintStyle: TextStyle(
-                  color: _inkTertiary,
-                  fontSize: 13,
-                ),
-                border: InputBorder.none,
-                isDense: true,
-                contentPadding: EdgeInsets.zero,
-              ),
-              maxLines: 3,
-              minLines: 2,
-            ),
-            const SizedBox(height: 12),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            child: const Row(
               children: [
-                const Row(
-                  children: [
-                    Icon(Icons.lock_outline_rounded,
-                        color: _inkTertiary, size: 13),
-                    SizedBox(width: 4),
-                    Text(
-                      'تایبەت',
-                      style: TextStyle(color: _inkTertiary, fontSize: 11),
-                    ),
-                  ],
-                ),
-                GestureDetector(
-                  onTap: _submitRequest,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 20, vertical: 10),
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [Color(0xFFD4A853), Color(0xFFB8893C)],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(
+                        'هاوبەشکردنی پاڕانەوە',
+                        textAlign: TextAlign.right,
+                        style: TextStyle(
+                          color: Colors.white70,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
-                      borderRadius: BorderRadius.circular(12),
-                      boxShadow: [
-                        BoxShadow(
-                          color: _gold.withAlpha(60),
-                          blurRadius: 12,
-                          offset: const Offset(0, 4),
+                      SizedBox(height: 6),
+                      Text(
+                        'دوعاکانت لێرە بنووسە',
+                        textAlign: TextAlign.right,
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 20,
+                          fontWeight: FontWeight.w900,
                         ),
-                      ],
-                    ),
-                    child: const Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.send_rounded, color: Colors.white, size: 14),
-                        SizedBox(width: 6),
-                        Text(
-                          'ناردن',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                          ),
+                      ),
+                      SizedBox(height: 6),
+                      Text(
+                        'دوگمەی زیادکردن بکە بۆ نووسینی دوعای نوێ، وە با خەلک دوعات بۆ بکەن خوای گەورە دوعاکانتان قبول بکات',
+                        textAlign: TextAlign.right,
+                        style: TextStyle(
+                          color: Colors.white70,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                          height: 1.45,
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
+                ),
+                SizedBox(width: 14),
+                Icon(
+                  Icons.volunteer_activism_rounded,
+                  color: Colors.white,
+                  size: 32,
                 ),
               ],
             ),
-          ],
+          ),
         ),
       ),
     );
@@ -329,34 +527,47 @@ class _PrayerWallScreenState extends State<PrayerWallScreen>
 
   Widget _buildDivider() {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 20, 20, 4),
-      child: Row(
-        children: [
-          Expanded(
-            child: Container(height: 1, color: _rimLight),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            child: StreamBuilder<List<PrayerRequest>>(
-              stream: _prayerService.getPrayerRequests(),
-              builder: (context, snapshot) {
-                final count = snapshot.data?.length ?? 0;
-                return Text(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: StreamBuilder<List<PrayerRequest>>(
+        stream: _prayerService.getPrayerRequests(),
+        builder: (context, snapshot) {
+          final count = snapshot.data?.length ?? 0;
+          return Row(
+            children: [
+              Expanded(
+                child: Container(
+                  height: 1,
+                  color: Colors.white.withOpacity(0.08),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Container(
+                padding:
+                const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.04),
+                  borderRadius: BorderRadius.circular(99),
+                  border: Border.all(color: Colors.white.withOpacity(0.08)),
+                ),
+                child: Text(
                   '$count داواکاری',
-                  textDirection: TextDirection.rtl,
                   style: const TextStyle(
-                    color: _inkTertiary,
+                    color: _textSecondary,
                     fontSize: 12,
-                    fontWeight: FontWeight.w500,
+                    fontWeight: FontWeight.w700,
                   ),
-                );
-              },
-            ),
-          ),
-          Expanded(
-            child: Container(height: 1, color: _rimLight),
-          ),
-        ],
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Container(
+                  height: 1,
+                  color: Colors.white.withOpacity(0.08),
+                ),
+              ),
+            ],
+          );
+        },
       ),
     );
   }
@@ -366,29 +577,30 @@ class _PrayerWallScreenState extends State<PrayerWallScreen>
       stream: _prayerService.getPrayerRequests(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return Center(
+          return const Center(
             child: SizedBox(
-              width: 24,
-              height: 24,
+              width: 26,
+              height: 26,
               child: CircularProgressIndicator(
-                color: _gold.withAlpha(150),
-                strokeWidth: 2,
+                color: _accent,
+                strokeWidth: 2.5,
               ),
             ),
           );
         }
+
         if (!snapshot.hasData || snapshot.data!.isEmpty) {
-          return const _EmptyState();
+          return const _EmptyStateModern();
         }
+
         final prayers = snapshot.data!;
         return ListView.builder(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
           itemCount: prayers.length,
           itemBuilder: (context, index) {
-            return _PrayerCard(
+            return _PrayerCardModern(
               prayer: prayers[index],
               prayerService: _prayerService,
-              index: index,
             );
           },
         );
@@ -397,158 +609,159 @@ class _PrayerWallScreenState extends State<PrayerWallScreen>
   }
 }
 
-class _PrayerCard extends StatelessWidget {
-  final PrayerRequest prayer;
-  final PrayerService prayerService;
-  final int index;
-
-  static const _surfaceElevated = Color(0xFF181D2E);
-  static const _rimLight = Color(0xFF252D44);
-  static const _gold = Color(0xFFD4A853);
-  static const _goldDim = Color(0x66D4A853);
-  static const _jade = Color(0xFF3ECFA0);
-  static const _jadeDim = Color(0x4D3ECFA0);
-  static const _inkPrimary = Color(0xFFF2EFE8);
-  static const _inkSecondary = Color(0xFF9A9EB8);
-  static const _inkTertiary = Color(0xFF4A4F6A);
-
-  const _PrayerCard({
+class _PrayerCardModern extends StatelessWidget {
+  const _PrayerCardModern({
     required this.prayer,
     required this.prayerService,
-    required this.index,
   });
+
+  final PrayerRequest prayer;
+  final PrayerService prayerService;
+
+  static const _surface = Color(0xFF121A2F);
+  static const _surface2 = Color(0xFF18233D);
+  static const _textPrimary = Color(0xFFF8F7FC);
+  static const _textSecondary = Color(0xFFB9C2D0);
+  static const _gold = Color(0xFFFFC96B);
+  static const _green = Color(0xFF38D39F);
+  static const _pink = Color(0xFFFF6B9D);
 
   @override
   Widget build(BuildContext context) {
+    final userName =
+    prayer.userName.trim().isEmpty ? 'بێ ناو' : prayer.userName.trim();
+
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
+      margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
-        color: _surfaceElevated,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: _rimLight),
+        borderRadius: BorderRadius.circular(28),
+        gradient: LinearGradient(
+          colors: [
+            _surface.withOpacity(0.96),
+            _surface2.withOpacity(0.92),
+          ],
+          begin: Alignment.topRight,
+          end: Alignment.bottomLeft,
+        ),
+        border: Border.all(color: Colors.white.withOpacity(0.08)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.18),
+            blurRadius: 18,
+            offset: const Offset(0, 10),
+          ),
+        ],
       ),
-      child: Material(
-        color: Colors.transparent,
-        borderRadius: BorderRadius.circular(20),
-        child: InkWell(
-          borderRadius: BorderRadius.circular(20),
-          splashColor: _gold.withAlpha(10),
-          highlightColor: _gold.withAlpha(5),
-          onTap: () {},
-          child: Padding(
-            padding: const EdgeInsets.all(18),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
+      child: Padding(
+        padding: const EdgeInsets.all(22),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Row(
               children: [
-                _buildCardHeader(),
-                const SizedBox(height: 12),
-                Text(
-                  prayer.content,
-                  textDirection: TextDirection.rtl,
-                  style: const TextStyle(
-                    color: _inkPrimary,
-                    fontSize: 14,
-                    height: 1.7,
-                    letterSpacing: 0.1,
+                Container(
+                  padding:
+                  const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: _gold.withOpacity(0.10),
+                    borderRadius: BorderRadius.circular(30),
+                    border: Border.all(color: _gold.withOpacity(0.20)),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(
+                        Icons.access_time_rounded,
+                        color: _gold,
+                        size: 13,
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        _formatTime(prayer.createdAt),
+                        style: const TextStyle(
+                          color: _gold,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-                const SizedBox(height: 16),
-                _buildDivider(),
-                const SizedBox(height: 14),
-                _buildActions(),
+                const Spacer(),
+                Row(
+                  children: [
+                    Text(
+                      userName,
+                      style: const TextStyle(
+                        color: _textSecondary,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Container(
+                      width: 38,
+                      height: 38,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: _gold.withOpacity(0.14),
+                      ),
+                      child: const Icon(
+                        Icons.person_rounded,
+                        color: _gold,
+                        size: 20,
+                      ),
+                    ),
+                  ],
+                ),
               ],
             ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildCardHeader() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-          decoration: BoxDecoration(
-            color: _gold.withAlpha(15),
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: _gold.withAlpha(40)),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(Icons.access_time_rounded,
-                  color: _inkTertiary, size: 11),
-              const SizedBox(width: 4),
-              Text(
-                _formatTime(prayer.createdAt),
-                style:
-                const TextStyle(color: _inkTertiary, fontSize: 11),
-              ),
-            ],
-          ),
-        ),
-        Row(
-          children: [
-            Container(
-              width: 28,
-              height: 28,
-              decoration: const BoxDecoration(
-                color: _goldDim,
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(Icons.person_outline_rounded,
-                  color: _gold, size: 14),
-            ),
-            const SizedBox(width: 8),
-            const Text(
-              'بێ ناوچاو',
-              style: TextStyle(
-                color: _inkSecondary,
-                fontSize: 12,
+            const SizedBox(height: 18),
+            Text(
+              prayer.content,
+              textDirection: TextDirection.rtl,
+              style: const TextStyle(
+                color: _textPrimary,
+                fontSize: 17,
+                height: 1.95,
                 fontWeight: FontWeight.w500,
               ),
-              textDirection: TextDirection.rtl,
+            ),
+            const SizedBox(height: 18),
+            Container(
+              height: 1,
+              color: Colors.white.withOpacity(0.06),
+            ),
+            const SizedBox(height: 16),
+            Wrap(
+              spacing: 10,
+              runSpacing: 10,
+              children: [
+                _ActionChipModern(
+                  label: 'خودا لێت وەربگرێت',
+                  count: prayer.prayedCount,
+                  icon: Icons.favorite_rounded,
+                  color: _pink,
+                  onTap: () => prayerService.incrementPrayed(prayer.id),
+                ),
+                _ActionChipModern(
+                  label: 'ئامین',
+                  count: prayer.amenCount,
+                  icon: Icons.front_hand_rounded,
+                  color: _green,
+                  onTap: () => prayerService.incrementAmen(prayer.id),
+                ),
+              ],
             ),
           ],
         ),
-      ],
-    );
-  }
-
-  Widget _buildDivider() {
-    return Container(height: 1, color: _rimLight);
-  }
-
-  Widget _buildActions() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.start,
-      children: [
-        _ActionChip(
-          label: 'خودا لێت وەربگرێت',
-          count: prayer.prayedCount,
-          icon: Icons.favorite_rounded,
-          color: const Color(0xFFE8607A),
-          dimColor: const Color(0x28E8607A),
-          onTap: () => prayerService.incrementPrayed(prayer.id),
-        ),
-        const SizedBox(width: 10),
-        _ActionChip(
-          label: 'ئامین',
-          count: prayer.amenCount,
-          icon: Icons.front_hand_rounded,
-          color: _jade,
-          dimColor: _jadeDim,
-          onTap: () => prayerService.incrementAmen(prayer.id),
-        ),
-      ],
+      ),
     );
   }
 
   String _formatTime(DateTime time) {
     final now = DateTime.now();
     final diff = now.difference(time);
+
     if (diff.inMinutes < 1) return 'ئێستا';
     if (diff.inMinutes < 60) return '${diff.inMinutes} خولەک';
     if (diff.inHours < 24) return '${diff.inHours} کاتژمێر';
@@ -556,42 +769,40 @@ class _PrayerCard extends StatelessWidget {
   }
 }
 
-class _ActionChip extends StatefulWidget {
-  final String label;
-  final int count;
-  final IconData icon;
-  final Color color;
-  final Color dimColor;
-  final VoidCallback onTap;
-
-  const _ActionChip({
+class _ActionChipModern extends StatefulWidget {
+  const _ActionChipModern({
     required this.label,
     required this.count,
     required this.icon,
     required this.color,
-    required this.dimColor,
     required this.onTap,
   });
 
+  final String label;
+  final int count;
+  final IconData icon;
+  final Color color;
+  final VoidCallback onTap;
+
   @override
-  State<_ActionChip> createState() => _ActionChipState();
+  State<_ActionChipModern> createState() => _ActionChipModernState();
 }
 
-class _ActionChipState extends State<_ActionChip>
+class _ActionChipModernState extends State<_ActionChipModern>
     with SingleTickerProviderStateMixin {
   late AnimationController _bounce;
   late Animation<double> _scale;
-  bool _tapped = false;
+  bool _pressed = false;
 
   @override
   void initState() {
     super.initState();
     _bounce = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 200),
+      duration: const Duration(milliseconds: 220),
     );
-    _scale = Tween<double>(begin: 1.0, end: 1.18).animate(
-      CurvedAnimation(parent: _bounce, curve: Curves.elasticOut),
+    _scale = Tween<double>(begin: 1, end: 1.10).animate(
+      CurvedAnimation(parent: _bounce, curve: Curves.easeOutBack),
     );
   }
 
@@ -602,7 +813,7 @@ class _ActionChipState extends State<_ActionChip>
   }
 
   void _handleTap() {
-    setState(() => _tapped = true);
+    setState(() => _pressed = true);
     _bounce.forward().then((_) => _bounce.reverse());
     widget.onTap();
   }
@@ -611,47 +822,43 @@ class _ActionChipState extends State<_ActionChip>
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: _handleTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
-        decoration: BoxDecoration(
-          color: _tapped
-              ? widget.dimColor.withAlpha(80)
-              : widget.dimColor.withAlpha(50),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: widget.color.withAlpha(_tapped ? 80 : 40),
+      child: ScaleTransition(
+        scale: _scale,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 180),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          decoration: BoxDecoration(
+            color: widget.color.withOpacity(_pressed ? 0.18 : 0.10),
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(
+              color: widget.color.withOpacity(_pressed ? 0.38 : 0.22),
+            ),
           ),
-        ),
-        child: ScaleTransition(
-          scale: _scale,
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(widget.icon, size: 14, color: widget.color),
+              Icon(widget.icon, size: 16, color: widget.color),
               const SizedBox(width: 6),
               Text(
                 widget.label,
                 style: TextStyle(
-                  color: widget.color.withAlpha(220),
+                  color: widget.color,
                   fontSize: 12,
-                  fontWeight: FontWeight.w500,
+                  fontWeight: FontWeight.w700,
                 ),
               ),
-              const SizedBox(width: 6),
+              const SizedBox(width: 8),
               AnimatedSwitcher(
-                duration: const Duration(milliseconds: 250),
-                transitionBuilder: (child, animation) => ScaleTransition(
-                  scale: animation,
-                  child: child,
-                ),
+                duration: const Duration(milliseconds: 220),
+                transitionBuilder: (child, animation) =>
+                    ScaleTransition(scale: animation, child: child),
                 child: Text(
                   '${widget.count}',
                   key: ValueKey(widget.count),
                   style: TextStyle(
                     color: widget.color,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w900,
                   ),
                 ),
               ),
@@ -663,53 +870,97 @@ class _ActionChipState extends State<_ActionChip>
   }
 }
 
-class _EmptyState extends StatelessWidget {
-  static const _gold = Color(0xFFD4A853);
-  static const _goldDim = Color(0x66D4A853);
-  static const _inkTertiary = Color(0xFF4A4F6A);
+class _EmptyStateModern extends StatelessWidget {
+  const _EmptyStateModern();
 
-  const _EmptyState();
+  static const _textSecondary = Color(0xFFB9C2D0);
+  static const _textMuted = Color(0xFF6F7A8B);
+  static const _gold = Color(0xFFFFC96B);
 
   @override
   Widget build(BuildContext context) {
     return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 64,
-            height: 64,
-            decoration: BoxDecoration(
-              color: _goldDim,
-              shape: BoxShape.circle,
-              border: Border.all(color: _gold.withAlpha(60)),
+      child: Padding(
+        padding: const EdgeInsets.all(28),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 74,
+              height: 74,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: _gold.withOpacity(0.12),
+                border: Border.all(color: _gold.withOpacity(0.22)),
+              ),
+              child: const Icon(
+                Icons.volunteer_activism_rounded,
+                color: _gold,
+                size: 34,
+              ),
             ),
-            child: const Icon(
-              Icons.volunteer_activism_rounded,
-              color: _gold,
-              size: 28,
+            const SizedBox(height: 16),
+            const Text(
+              'هێشتا هیچ داواکارییەک نییە',
+              textDirection: TextDirection.rtl,
+              style: TextStyle(
+                color: _textSecondary,
+                fontSize: 15,
+                fontWeight: FontWeight.w800,
+              ),
             ),
-          ),
-          const SizedBox(height: 16),
-          const Text(
-            'هیچ داواکارییەک نییە هێشتا',
-            textDirection: TextDirection.rtl,
-            style: TextStyle(
-              color: _inkTertiary,
-              fontSize: 14,
+            const SizedBox(height: 6),
+            const Text(
+              'یەکەم کەس بە کە دوعاکەی خۆی لێرە هاوبەش دەکات',
+              textDirection: TextDirection.rtl,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: _textMuted,
+                fontSize: 12,
+                height: 1.5,
+              ),
             ),
-          ),
-          const SizedBox(height: 6),
-          const Text(
-            'یەکەم کەس بە کە دووعاکەت هاوبەش دەکەیت',
-            textDirection: TextDirection.rtl,
-            style: TextStyle(
-              color: Color(0xFF363B55),
-              fontSize: 12,
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
+    );
+  }
+}
+
+class _ModernBackground extends StatelessWidget {
+  const _ModernBackground();
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      children: [
+        Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [Color(0xFF070B14), Color(0xFF0D1324)],
+            ),
+          ),
+        ),
+        const Positioned.fill(child: _AmbientBackground()),
+        Positioned(
+          top: -70,
+          right: -40,
+          child: _GlowBlob(
+            color: const Color(0xFF7C5CFF).withOpacity(0.18),
+            size: 220,
+          ),
+        ),
+        Positioned(
+          bottom: 60,
+          left: -50,
+          child: _GlowBlob(
+            color: const Color(0xFF46C2FF).withOpacity(0.12),
+            size: 190,
+          ),
+        ),
+      ],
     );
   }
 }
@@ -718,8 +969,9 @@ class _AmbientBackground extends StatelessWidget {
   const _AmbientBackground();
 
   @override
-  Widget build(BuildContext context) =>
-      CustomPaint(painter: _AmbientPainter());
+  Widget build(BuildContext context) {
+    return CustomPaint(painter: _AmbientPainter());
+  }
 }
 
 class _AmbientPainter extends CustomPainter {
@@ -730,35 +982,31 @@ class _AmbientPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final goldGradient = RadialGradient(
-      colors: [
-        const Color(0x2DD4A853), // Fixed hex
-        Colors.transparent,
-      ],
+    final purpleGlow = RadialGradient(
+      colors: [const Color(0x337C5CFF), Colors.transparent],
     );
+
     canvas.drawRect(
       Rect.fromLTWH(0, 0, size.width, size.height),
       Paint()
-        ..shader = goldGradient.createShader(
+        ..shader = purpleGlow.createShader(
           Rect.fromCircle(
-            center: Offset(size.width * 0.85, size.height * 0.05),
+            center: Offset(size.width * 0.85, size.height * 0.08),
             radius: size.width * 0.65,
           ),
         ),
     );
 
-    final jadeGradient = RadialGradient(
-      colors: [
-        const Color(0x1F3ECFA0), // Fixed hex
-        Colors.transparent,
-      ],
+    final blueGlow = RadialGradient(
+      colors: [const Color(0x2246C2FF), Colors.transparent],
     );
+
     canvas.drawRect(
       Rect.fromLTWH(0, 0, size.width, size.height),
       Paint()
-        ..shader = jadeGradient.createShader(
+        ..shader = blueGlow.createShader(
           Rect.fromCircle(
-            center: Offset(size.width * 0.1, size.height * 0.9),
+            center: Offset(size.width * 0.10, size.height * 0.92),
             radius: size.width * 0.55,
           ),
         ),
@@ -779,5 +1027,31 @@ class _AmbientPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter old) => false;
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+
+class _GlowBlob extends StatelessWidget {
+  const _GlowBlob({
+    required this.color,
+    required this.size,
+  });
+
+  final Color color;
+  final double size;
+
+  @override
+  Widget build(BuildContext context) {
+    return IgnorePointer(
+      child: Container(
+        width: size,
+        height: size,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          gradient: RadialGradient(
+            colors: [color, Colors.transparent],
+          ),
+        ),
+      ),
+    );
+  }
 }
