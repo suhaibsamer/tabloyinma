@@ -64,7 +64,7 @@ class DefaultFirebaseOptions {
     messagingSenderId: '515047456154',
     projectId: 'tabloy-iman',
     storageBucket: 'tabloy-iman.firebasestorage.app',
-    iosBundleId: 'com.example.tabloyIman',
+    iosBundleId: 'com.teestudio.tabloyiman',
   );
 
   static const FirebaseOptions macos = FirebaseOptions(
@@ -73,7 +73,7 @@ class DefaultFirebaseOptions {
     messagingSenderId: '515047456154',
     projectId: 'tabloy-iman',
     storageBucket: 'tabloy-iman.firebasestorage.app',
-    iosBundleId: 'com.example.tabloyIman',
+    iosBundleId: 'com.teestudio.tabloyiman',
   );
 
   static const FirebaseOptions windows = FirebaseOptions(
@@ -86,3 +86,4 @@ class DefaultFirebaseOptions {
     measurementId: 'G-TETQN1WCB3',
   );
 }
+

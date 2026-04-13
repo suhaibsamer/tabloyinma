@@ -72,3 +72,4 @@ class PrayerTimesService {
     return list;
   }
 }
+

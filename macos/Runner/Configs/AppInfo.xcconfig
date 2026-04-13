@@ -8,7 +8,7 @@
 PRODUCT_NAME = tabloy_iman
 
 // The application's bundle identifier
-PRODUCT_BUNDLE_IDENTIFIER = com.example.tabloyIman
+PRODUCT_BUNDLE_IDENTIFIER = com.teestudio.tabloyiman
 
 // The copyright displayed in application information
-PRODUCT_COPYRIGHT = Copyright © 2025 com.example. All rights reserved.
+PRODUCT_COPYRIGHT = Copyright © 2025 com.teestudio. All rights reserved.

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../utils/kurdish_styles.dart';
 import '../../widgets/font_size_controls.dart';
 import '../../services/theme_manager.dart';
+import '../../utils/info_utils.dart';
 
 class ZikrScreen extends StatefulWidget {
   final String initialCategory; // 'morning', 'evening', 'sleep'
@@ -21,7 +22,6 @@ class _ZikrScreenState extends State<ZikrScreen> {
   static const _starlight = Color(0xFFF0EEF8);
   static const _moonGlow = Color(0xFFE8E2FF);
   static const _accent = Color(0xFFB08AFF);
-  static const _gold = Color(0xFFFFD97D);
 
   final Map<String, List<ZikrItem>> _zikrData = {
     'morning': [
@@ -99,6 +99,17 @@ class _ZikrScreenState extends State<ZikrScreen> {
           icon: const Icon(Icons.arrow_back_ios_new, color: _starlight),
           onPressed: () => Navigator.pop(context),
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.info_outline_rounded, color: _starlight),
+            onPressed: () => InfoUtils.showInfo(
+              context,
+              title: 'زیکرەکان',
+              description: 'زیکرەکانی بەیانیان و ئێواران و دوای نوێژەکان.',
+              howToUse: 'زیکرەکان بە دوای یەکدا بخوێنەوە، هەر زیکرێک تەواو بوو کلیکی لێ بکە بۆ ئەوەی بڕواتە سەر زیکری دواتر.',
+            ),
+          ),
+        ],
       ),
       body: Container(
         decoration: const BoxDecoration(
@@ -115,7 +126,7 @@ class _ZikrScreenState extends State<ZikrScreen> {
             Expanded(
               child: ValueListenableBuilder<double>(
                 valueListenable: ThemeManager().fontSizeDelta,
-                builder: (context, _, __) {
+                builder: (context, _, _) {
                   return ListView.builder(
                     padding: const EdgeInsets.all(20),
                     itemCount: _zikrData[_selectedCategory]!.length,
@@ -166,7 +177,7 @@ class _ZikrScreenState extends State<ZikrScreen> {
             textAlign: TextAlign.center,
             style: KurdishStyles.getKurdishStyle(
               fontSize: 14,
-              color: isSelected ? _deepSpace : _starlight.withOpacity(0.6),
+              color: isSelected ? _deepSpace : _starlight.withValues(alpha: 0.6),
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -182,7 +193,7 @@ class _ZikrScreenState extends State<ZikrScreen> {
       decoration: BoxDecoration(
         color: _nebula,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: _accent.withOpacity(0.1)),
+        border: Border.all(color: _accent.withValues(alpha: 0.1)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -197,7 +208,7 @@ class _ZikrScreenState extends State<ZikrScreen> {
           Text(
             zikr.kurdish,
             textAlign: TextAlign.right,
-            style: KurdishStyles.getKurdishStyle(color: _moonGlow.withOpacity(0.7)),
+            style: KurdishStyles.getKurdishStyle(color: _moonGlow.withValues(alpha: 0.7)),
             textDirection: TextDirection.rtl,
           ),
           const SizedBox(height: 24),
@@ -207,7 +218,7 @@ class _ZikrScreenState extends State<ZikrScreen> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 decoration: BoxDecoration(
-                  color: _accent.withOpacity(0.1),
+                  color: _accent.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
@@ -234,3 +245,4 @@ class ZikrItem {
 
   ZikrItem({required this.arabic, required this.kurdish, required this.count});
 }
+

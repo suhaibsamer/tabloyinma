@@ -1,6 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:hijri/hijri_calendar.dart';
+import '../../utils/info_utils.dart';
 
 class CalendarScreen extends StatefulWidget {
   const CalendarScreen({super.key});
@@ -17,7 +18,6 @@ class _CalendarScreenState extends State<CalendarScreen>
   static const _bg = Color(0xFF070B14);
   static const _surface = Color(0xFF111827);
   static const _surface2 = Color(0xFF172033);
-  static const _card = Color(0xFF0F172A);
   static const _border = Color(0xFF25324A);
 
   static const _text = Color(0xFFF8FAFC);
@@ -29,6 +29,7 @@ class _CalendarScreenState extends State<CalendarScreen>
   static const _gold = Color(0xFFF59E0B);
   static const _green = Color(0xFF10B981);
   static const _blue = Color(0xFF38BDF8);
+  static const _red = Color(0xFFFB7185);
 
   @override
   void initState() {
@@ -80,8 +81,160 @@ class _CalendarScreenState extends State<CalendarScreen>
     return months[month] ?? '';
   }
 
+  List<_OccasionDefinition> _occasionDefinitions() {
+    return [
+      _OccasionDefinition(
+        title: 'سەری ساڵی کۆچی',
+        hijriMonth: 1,
+        hijriDay: 1,
+        icon: '🗓️',
+        color: _blue,
+      ),
+      _OccasionDefinition(
+        title: 'عاشوورا',
+        hijriMonth: 1,
+        hijriDay: 10,
+        icon: '🕌',
+        color: _gold,
+      ),
+      _OccasionDefinition(
+        title: 'مەولوودی پێغەمبەر (د.خ)',
+        hijriMonth: 3,
+        hijriDay: 12,
+        icon: '✨',
+        color: _gold,
+      ),
+      _OccasionDefinition(
+        title: 'شەوی میعراج',
+        hijriMonth: 7,
+        hijriDay: 27,
+        icon: '🌌',
+        color: _primary,
+      ),
+      _OccasionDefinition(
+        title: 'نیوەی شەعبان',
+        hijriMonth: 8,
+        hijriDay: 15,
+        icon: '🌕',
+        color: _green,
+      ),
+      _OccasionDefinition(
+        title: 'سەرەتای مانگی ڕەمەزان',
+        hijriMonth: 9,
+        hijriDay: 1,
+        icon: '🌙',
+        color: _primary,
+      ),
+      _OccasionDefinition(
+        title: 'شەوی قەدر',
+        hijriMonth: 9,
+        hijriDay: 27,
+        icon: '🤲',
+        color: _gold,
+      ),
+      _OccasionDefinition(
+        title: 'جەژنی ڕەمەزان',
+        hijriMonth: 10,
+        hijriDay: 1,
+        icon: '🎉',
+        color: _green,
+      ),
+      _OccasionDefinition(
+        title: 'ڕۆژی عەرەفە',
+        hijriMonth: 12,
+        hijriDay: 9,
+        icon: '🤍',
+        color: _blue,
+      ),
+      _OccasionDefinition(
+        title: 'جەژنی قوربان',
+        hijriMonth: 12,
+        hijriDay: 10,
+        icon: '🐑',
+        color: _red,
+      ),
+    ];
+  }
+
+  List<_UpcomingOccasion> _buildUpcomingOccasions() {
+    final now = DateTime.now();
+    final List<_UpcomingOccasion> items = [];
+
+    for (final def in _occasionDefinitions()) {
+      final nextDate = _findNextGregorianForHijri(
+        hijriMonth: def.hijriMonth,
+        hijriDay: def.hijriDay,
+        from: now,
+      );
+
+      if (nextDate != null) {
+        items.add(
+          _UpcomingOccasion(
+            title: def.title,
+            icon: def.icon,
+            color: def.color,
+            date: nextDate,
+            hijriMonth: def.hijriMonth,
+            hijriDay: def.hijriDay,
+            hijriMonthName: _getKurdishHijriMonthName(def.hijriMonth),
+          ),
+        );
+      }
+    }
+
+    items.sort((a, b) => a.date.compareTo(b.date));
+    return items;
+  }
+
+  DateTime? _findNextGregorianForHijri({
+    required int hijriMonth,
+    required int hijriDay,
+    required DateTime from,
+  }) {
+    for (int i = 0; i <= 500; i++) {
+      final date = from.add(Duration(days: i));
+      final hijri = HijriCalendar.fromDate(date);
+      if (hijri.hMonth == hijriMonth && hijri.hDay == hijriDay) {
+        return DateTime(date.year, date.month, date.day);
+      }
+    }
+    return null;
+  }
+
+  String _formatCountdown(DateTime target) {
+    final now = DateTime.now();
+    final diff = target.difference(now);
+
+    if (diff.isNegative) {
+      return 'تێپەڕیووە';
+    }
+
+    if (diff.inHours < 24) {
+      final hours = diff.inHours == 0 ? 1 : diff.inHours;
+      return '$hours کاتژمێر ماوە';
+    }
+
+    final days = diff.inDays + ((diff.inHours % 24) > 0 ? 1 : 0);
+    return '$days ڕۆژ ماوە';
+  }
+
+  String _formatGregorianDate(DateTime date) {
+    return '${date.day} ${_getKurdishGregorianMonthName(date.month)} ${date.year}';
+  }
+
+  String? _getOccasion(HijriCalendar hijri) {
+    for (final def in _occasionDefinitions()) {
+      if (hijri.hMonth == def.hijriMonth && hijri.hDay == def.hijriDay) {
+        return def.title;
+      }
+    }
+    return null;
+  }
+
   @override
   Widget build(BuildContext context) {
+    final upcomingOccasions = _buildUpcomingOccasions();
+
     return Scaffold(
       backgroundColor: _bg,
       body: Stack(
@@ -99,11 +252,11 @@ class _CalendarScreenState extends State<CalendarScreen>
                       children: [
                         _buildTopDateCard(),
                         const SizedBox(height: 18),
-                        _buildQuickInfoCards(),
+                        _buildQuickInfoCards(upcomingOccasions),
                         const SizedBox(height: 18),
                         _buildCalendarCard(),
                         const SizedBox(height: 22),
-                        _buildOccasionsSection(),
+                        _buildOccasionsSection(upcomingOccasions),
                       ],
                     ),
                   ),
@@ -127,7 +280,7 @@ class _CalendarScreenState extends State<CalendarScreen>
             height: 220,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: _primary.withOpacity(0.18),
+              color: _primary.withValues(alpha: 0.18),
             ),
           ),
         ),
@@ -139,7 +292,7 @@ class _CalendarScreenState extends State<CalendarScreen>
             height: 170,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: _blue.withOpacity(0.10),
+              color: _blue.withValues(alpha: 0.10),
             ),
           ),
         ),
@@ -175,7 +328,7 @@ class _CalendarScreenState extends State<CalendarScreen>
               ),
               SizedBox(height: 2),
               Text(
-                'کۆچی و زایینی',
+                'هەموو بۆنە ئایینییەکان',
                 style: TextStyle(
                   color: _muted,
                   fontSize: 11,
@@ -185,8 +338,14 @@ class _CalendarScreenState extends State<CalendarScreen>
             ],
           ),
           const Spacer(),
-          const _GlassIconButton(
-            icon: Icons.calendar_month_rounded,
+          _GlassIconButton(
+            icon: Icons.info_outline_rounded,
+            onTap: () => InfoUtils.showInfo(
+              context,
+              title: 'ڕۆژژمێر',
+              description: 'ڕۆژژمێری کۆچی و زاینی و بۆنە ئایینییەکان.',
+              howToUse: 'دەتوانیت بەروارەکان ببینی و بزانیت چەند ڕۆژ ماوە بۆ بۆنە ئایینییەکانی وەک ڕەمەزان و جەژنەکان.',
+            ),
           ),
         ],
       ),
@@ -206,7 +365,7 @@ class _CalendarScreenState extends State<CalendarScreen>
         ),
         boxShadow: [
           BoxShadow(
-            color: _primary.withOpacity(0.28),
+            color: _primary.withValues(alpha: 0.28),
             blurRadius: 28,
             offset: const Offset(0, 12),
           ),
@@ -217,9 +376,9 @@ class _CalendarScreenState extends State<CalendarScreen>
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.16),
+              color: Colors.white.withValues(alpha: 0.16),
               borderRadius: BorderRadius.circular(999),
-              border: Border.all(color: Colors.white.withOpacity(0.15)),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
             ),
             child: const Text(
               'بەرواری هەڵبژێردراو',
@@ -254,9 +413,9 @@ class _CalendarScreenState extends State<CalendarScreen>
             width: double.infinity,
             padding: const EdgeInsets.symmetric(vertical: 14),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.10),
+              color: Colors.white.withValues(alpha: 0.10),
               borderRadius: BorderRadius.circular(18),
-              border: Border.all(color: Colors.white.withOpacity(0.10)),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.10)),
             ),
             child: Column(
               children: [
@@ -285,7 +444,9 @@ class _CalendarScreenState extends State<CalendarScreen>
     );
   }
 
-  Widget _buildQuickInfoCards() {
+  Widget _buildQuickInfoCards(List<_UpcomingOccasion> occasions) {
+    final nextOccasion = occasions.isNotEmpty ? occasions.first : null;
+
     return Row(
       children: [
         Expanded(
@@ -299,19 +460,20 @@ class _CalendarScreenState extends State<CalendarScreen>
         const SizedBox(width: 10),
         Expanded(
           child: _MiniStatCard(
-            title: 'مانگ',
-            value: _getKurdishGregorianMonthName(_selectedDate.month),
-            icon: Icons.date_range_rounded,
-            color: _gold,
+            title: 'مانگی کۆچی',
+            value: _getKurdishHijriMonthName(_hijriDate.hMonth),
+            icon: Icons.nightlight_round,
+            color: _green,
           ),
         ),
         const SizedBox(width: 10),
         Expanded(
           child: _MiniStatCard(
-            title: 'کۆچی',
-            value: '${_hijriDate.hDay}',
-            icon: Icons.nightlight_round,
-            color: _green,
+            title: 'نزیکترین بۆنە',
+            value:
+            nextOccasion == null ? '-' : _formatCountdown(nextOccasion.date),
+            icon: Icons.alarm_rounded,
+            color: _gold,
           ),
         ),
       ],
@@ -421,8 +583,6 @@ class _CalendarScreenState extends State<CalendarScreen>
                   date.month == _selectedDate.month &&
                   date.year == _selectedDate.year;
 
-              final isWhiteDay =
-                  hijri.hDay == 13 || hijri.hDay == 14 || hijri.hDay == 15;
               final isOccasion = _getOccasion(hijri) != null;
 
               Color bgColor = Colors.transparent;
@@ -434,14 +594,11 @@ class _CalendarScreenState extends State<CalendarScreen>
                 borderColor = _primary;
                 textColor = Colors.white;
               } else if (isToday) {
-                bgColor = _blue.withOpacity(0.16);
-                borderColor = _blue.withOpacity(0.45);
+                bgColor = _blue.withValues(alpha: 0.16);
+                borderColor = _blue.withValues(alpha: 0.45);
               } else if (isOccasion) {
-                bgColor = _gold.withOpacity(0.12);
-                borderColor = _gold.withOpacity(0.35);
-              } else if (isWhiteDay) {
-                bgColor = _green.withOpacity(0.10);
-                borderColor = _green.withOpacity(0.35);
+                bgColor = _gold.withValues(alpha: 0.12);
+                borderColor = _gold.withValues(alpha: 0.35);
               }
 
               return InkWell(
@@ -461,28 +618,30 @@ class _CalendarScreenState extends State<CalendarScreen>
                         '$dayNumber',
                         style: TextStyle(
                           color: textColor,
-                          fontSize: 15,
+                          fontSize: 14,
                           fontWeight: FontWeight.w800,
+                          height: 1.1,
                         ),
                       ),
-                      const SizedBox(height: 2),
+                      const SizedBox(height: 1),
                       Text(
                         '${hijri.hDay}',
                         style: TextStyle(
                           color: isSelected
                               ? Colors.white70
-                              : _muted.withOpacity(0.9),
-                          fontSize: 10,
+                              : _muted.withValues(alpha: 0.9),
+                          fontSize: 9,
                           fontWeight: FontWeight.w600,
+                          height: 1.1,
                         ),
                       ),
-                      if (isOccasion || isWhiteDay) ...[
-                        const SizedBox(height: 4),
+                      if (isOccasion) ...[
+                        const SizedBox(height: 2),
                         Container(
-                          width: 5,
-                          height: 5,
-                          decoration: BoxDecoration(
-                            color: isOccasion ? _gold : _green,
+                          width: 4,
+                          height: 4,
+                          decoration: const BoxDecoration(
+                            color: _gold,
                             shape: BoxShape.circle,
                           ),
                         ),
@@ -498,11 +657,7 @@ class _CalendarScreenState extends State<CalendarScreen>
     );
   }
 
-  Widget _buildOccasionsSection() {
-    final currentHijri = HijriCalendar.fromDate(_selectedDate);
-    final monthOccasions =
-    _getMonthOccasions(currentHijri.hMonth, currentHijri.hYear);
-
+  Widget _buildOccasionsSection(List<_UpcomingOccasion> occasions) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -516,7 +671,7 @@ class _CalendarScreenState extends State<CalendarScreen>
         ),
         const SizedBox(height: 6),
         const Text(
-          'ڕۆژە تایبەتەکانی ئەم مانگە',
+          'هەموو بۆنە داهاتووەکان بە کاتی ماوە',
           style: TextStyle(
             color: _muted,
             fontSize: 12,
@@ -524,7 +679,7 @@ class _CalendarScreenState extends State<CalendarScreen>
           ),
         ),
         const SizedBox(height: 16),
-        if (monthOccasions.isEmpty)
+        if (occasions.isEmpty)
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(18),
@@ -535,7 +690,7 @@ class _CalendarScreenState extends State<CalendarScreen>
             ),
             child: const Center(
               child: Text(
-                'هیچ بۆنەیەک نییە لەم مانگەدا',
+                'هیچ بۆنەیەک نەدۆزرایەوە',
                 style: TextStyle(
                   color: _muted,
                   fontSize: 14,
@@ -545,13 +700,13 @@ class _CalendarScreenState extends State<CalendarScreen>
             ),
           )
         else
-          ...monthOccasions.map((occ) => _buildOccasionItem(occ)),
+          ...occasions.map(_buildOccasionItem),
       ],
     );
   }
 
-  Widget _buildOccasionItem(Occasion occ) {
-    final accent = occ.isWhiteDay ? _green : _gold;
+  Widget _buildOccasionItem(_UpcomingOccasion occ) {
+    final countdown = _formatCountdown(occ.date);
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -559,7 +714,7 @@ class _CalendarScreenState extends State<CalendarScreen>
       decoration: BoxDecoration(
         color: _surface,
         borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: accent.withOpacity(0.28)),
+        border: Border.all(color: occ.color.withValues(alpha: 0.28)),
       ),
       child: Row(
         children: [
@@ -567,7 +722,7 @@ class _CalendarScreenState extends State<CalendarScreen>
             width: 52,
             height: 52,
             decoration: BoxDecoration(
-              color: accent.withOpacity(0.12),
+              color: occ.color.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(16),
             ),
             child: Center(
@@ -592,167 +747,80 @@ class _CalendarScreenState extends State<CalendarScreen>
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  '${occ.hijriDay} ${occ.hijriMonth}',
+                  '${occ.hijriDay} ${occ.hijriMonthName}',
                   style: const TextStyle(
                     color: _muted,
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
+                const SizedBox(height: 4),
+                Text(
+                  _formatGregorianDate(occ.date),
+                  style: const TextStyle(
+                    color: _faint,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
               ],
             ),
           ),
-          if (occ.isWhiteDay)
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
-              decoration: BoxDecoration(
-                color: _green.withOpacity(0.15),
-                borderRadius: BorderRadius.circular(999),
-                border: Border.all(color: _green.withOpacity(0.30)),
-              ),
-              child: const Text(
-                'ڕۆژوو',
-                style: TextStyle(
-                  color: _green,
-                  fontSize: 11,
-                  fontWeight: FontWeight.w800,
-                ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+            decoration: BoxDecoration(
+              color: occ.color.withValues(alpha: 0.14),
+              borderRadius: BorderRadius.circular(999),
+              border: Border.all(color: occ.color.withValues(alpha: 0.28)),
+            ),
+            child: Text(
+              countdown,
+              style: TextStyle(
+                color: occ.color,
+                fontSize: 11,
+                fontWeight: FontWeight.w800,
               ),
             ),
+          ),
         ],
       ),
     );
   }
-
-  String? _getOccasion(HijriCalendar hijri) {
-    if (hijri.hMonth == 9 && hijri.hDay == 1) return 'سەرەتای مانگی ڕەمەزان';
-    if (hijri.hMonth == 10 && hijri.hDay == 1) return 'جەژنی ڕەمەزان';
-    if (hijri.hMonth == 12 && hijri.hDay == 10) return 'جەژنی قوربان';
-    if (hijri.hMonth == 1 && hijri.hDay == 10) return 'عاشوورا';
-    if (hijri.hMonth == 3 && hijri.hDay == 12) {
-      return 'مەولوودی پێغەمبەر (د.خ)';
-    }
-    return null;
-  }
-
-  List<Occasion> _getMonthOccasions(int month, int year) {
-    List<Occasion> occasions = [];
-
-    occasions.add(
-      Occasion(
-        title: 'ڕۆژانی سپی (بۆ ڕۆژوو)',
-        hijriDay: 13,
-        hijriMonth: _getKurdishHijriMonthName(month),
-        icon: '⚪',
-        isWhiteDay: true,
-      ),
-    );
-    occasions.add(
-      Occasion(
-        title: 'ڕۆژانی سپی (بۆ ڕۆژوو)',
-        hijriDay: 14,
-        hijriMonth: _getKurdishHijriMonthName(month),
-        icon: '⚪',
-        isWhiteDay: true,
-      ),
-    );
-    occasions.add(
-      Occasion(
-        title: 'ڕۆژانی سپی (بۆ ڕۆژوو)',
-        hijriDay: 15,
-        hijriMonth: _getKurdishHijriMonthName(month),
-        icon: '⚪',
-        isWhiteDay: true,
-      ),
-    );
-
-    if (month == 9) {
-      occasions.insert(
-        0,
-        Occasion(
-          title: 'سەرەتای مانگی ڕەمەزان',
-          hijriDay: 1,
-          hijriMonth: _getKurdishHijriMonthName(9),
-          icon: '🌙',
-        ),
-      );
-    } else if (month == 10) {
-      occasions.insert(
-        0,
-        Occasion(
-          title: 'جەژنی ڕەمەزان',
-          hijriDay: 1,
-          hijriMonth: _getKurdishHijriMonthName(10),
-          icon: '🎉',
-        ),
-      );
-    } else if (month == 12) {
-      occasions.insert(
-        0,
-        Occasion(
-          title: 'جەژنی قوربان',
-          hijriDay: 10,
-          hijriMonth: _getKurdishHijriMonthName(12),
-          icon: '🐑',
-        ),
-      );
-      occasions.insert(
-        0,
-        Occasion(
-          title: 'ڕۆژی عەرەفە',
-          hijriDay: 9,
-          hijriMonth: _getKurdishHijriMonthName(12),
-          icon: '🤲',
-        ),
-      );
-    } else if (month == 1) {
-      occasions.insert(
-        0,
-        Occasion(
-          title: 'سەری ساڵی کۆچی',
-          hijriDay: 1,
-          hijriMonth: _getKurdishHijriMonthName(1),
-          icon: '🗓️',
-        ),
-      );
-      occasions.insert(
-        1,
-        Occasion(
-          title: 'عاشوورا',
-          hijriDay: 10,
-          hijriMonth: _getKurdishHijriMonthName(1),
-          icon: '🕌',
-        ),
-      );
-    } else if (month == 3) {
-      occasions.insert(
-        0,
-        Occasion(
-          title: 'مەولوودی پێغەمبەر (د.خ)',
-          hijriDay: 12,
-          hijriMonth: _getKurdishHijriMonthName(3),
-          icon: '✨',
-        ),
-      );
-    }
-
-    return occasions;
-  }
 }
 
-class Occasion {
+class _OccasionDefinition {
   final String title;
+  final int hijriMonth;
   final int hijriDay;
-  final String hijriMonth;
   final String icon;
-  final bool isWhiteDay;
+  final Color color;
 
-  Occasion({
+  _OccasionDefinition({
     required this.title,
-    required this.hijriDay,
     required this.hijriMonth,
+    required this.hijriDay,
     required this.icon,
-    this.isWhiteDay = false,
+    required this.color,
+  });
+}
+
+class _UpcomingOccasion {
+  final String title;
+  final String icon;
+  final Color color;
+  final DateTime date;
+  final int hijriMonth;
+  final int hijriDay;
+  final String hijriMonthName;
+
+  _UpcomingOccasion({
+    required this.title,
+    required this.icon,
+    required this.color,
+    required this.date,
+    required this.hijriMonth,
+    required this.hijriDay,
+    required this.hijriMonthName,
   });
 }
 
@@ -774,9 +842,9 @@ class _GlassIconButton extends StatelessWidget {
         width: 44,
         height: 44,
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.06),
+          color: Colors.white.withValues(alpha: 0.06),
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.white.withOpacity(0.08)),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
         ),
         child: Icon(icon, color: _CalendarScreenState._text, size: 18),
       ),
@@ -813,7 +881,7 @@ class _MiniStatCard extends StatelessWidget {
             width: 34,
             height: 34,
             decoration: BoxDecoration(
-              color: color.withOpacity(0.12),
+              color: color.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(10),
             ),
             child: Icon(icon, color: color, size: 17),
@@ -830,7 +898,7 @@ class _MiniStatCard extends StatelessWidget {
           const SizedBox(height: 4),
           Text(
             value,
-            maxLines: 1,
+            maxLines: 2,
             overflow: TextOverflow.ellipsis,
             style: const TextStyle(
               color: _CalendarScreenState._text,

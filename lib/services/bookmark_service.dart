@@ -8,15 +8,9 @@ class BookmarkService {
 
   static const String _bookmarkKey = 'quran_bookmarks';
 
-  String _getBookmarkId(int chapterNumber, int verseNumber) {
-    return '$chapterNumber:$verseNumber';
-  }
-
   Future<void> toggleBookmark(int chapterNumber, int verseNumber, String chapterName) async {
     final prefs = await SharedPreferences.getInstance();
     List<String> bookmarks = prefs.getStringList(_bookmarkKey) ?? [];
-    
-    final String bookmarkId = _getBookmarkId(chapterNumber, verseNumber);
     
     bool exists = false;
     int indexToRemove = -1;
@@ -65,3 +59,4 @@ class BookmarkService {
       ..sort((a, b) => b['timestamp'].compareTo(a['timestamp']));
   }
 }
+

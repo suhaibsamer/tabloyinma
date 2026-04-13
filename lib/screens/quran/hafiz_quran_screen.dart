@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
-import 'dart:ui' as ui;
-import 'dart:convert';
 import 'package:tabloy_iman/services/quran_service.dart';
 import 'package:tabloy_iman/services/quran_metadata.dart';
 import 'package:tabloy_iman/models/quran_verse.dart';
@@ -27,7 +25,6 @@ class _HafizQuranScreenState extends State<HafizQuranScreen> with TickerProvider
   List<Map<String, dynamic>> _generatedPlan = [];
   List<bool> _completedDays = [];
   bool _isLoading = true;
-  bool _isDataLoaded = false;
 
   // ── Palette ──────────────────────────────────────────────────────────────
   static const _deepSpace = Color(0xFF04060F);
@@ -47,7 +44,6 @@ class _HafizQuranScreenState extends State<HafizQuranScreen> with TickerProvider
 
   Future<void> _initData() async {
     await _quranService.loadQuranData();
-    _isDataLoaded = true;
     await _loadSavedPlan();
   }
 
@@ -214,13 +210,13 @@ class _HafizQuranScreenState extends State<HafizQuranScreen> with TickerProvider
       decoration: BoxDecoration(
         color: _midnight,
         borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: _accent.withOpacity(0.18), width: 1),
+        border: Border.all(color: _accent.withValues(alpha: 0.18), width: 1),
       ),
       child: Column(
         children: [
           Container(
             padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(color: _accent.withOpacity(0.1), shape: BoxShape.circle),
+            decoration: BoxDecoration(color: _accent.withValues(alpha: 0.1), shape: BoxShape.circle),
             child: const Text('🕋', style: TextStyle(fontSize: 30)),
           ),
           const SizedBox(height: 16),
@@ -229,7 +225,7 @@ class _HafizQuranScreenState extends State<HafizQuranScreen> with TickerProvider
           Text(
             'لێرە دەتوانیت پلانی درێژخایەن بۆ لەبەرکردنی قورئانی پیرۆز دابنێیت',
             textAlign: TextAlign.center,
-            style: TextStyle(color: _moonGlow.withOpacity(0.5), fontSize: 13),
+            style: TextStyle(color: _moonGlow.withValues(alpha: 0.5), fontSize: 13),
           ),
         ],
       ),
@@ -253,7 +249,7 @@ class _HafizQuranScreenState extends State<HafizQuranScreen> with TickerProvider
                 style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold),
                 decoration: InputDecoration(
                   hintText: 'نموونە: ٢',
-                  hintStyle: TextStyle(color: _starlight.withOpacity(0.1)),
+                  hintStyle: TextStyle(color: _starlight.withValues(alpha: 0.1)),
                   filled: true,
                   fillColor: _nebula,
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(15), borderSide: BorderSide.none),
@@ -292,7 +288,7 @@ class _HafizQuranScreenState extends State<HafizQuranScreen> with TickerProvider
               onTap: _clearPlan,
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(color: Colors.red.withOpacity(0.1), borderRadius: BorderRadius.circular(8)),
+                decoration: BoxDecoration(color: Colors.red.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(8)),
                 child: const Text('سڕینەوە', style: TextStyle(color: Colors.red, fontSize: 12)),
               ),
             ),
@@ -300,7 +296,7 @@ class _HafizQuranScreenState extends State<HafizQuranScreen> with TickerProvider
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Text('پلانی $_planYears ساڵە', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                Text('$completedCount لە ${_generatedPlan.length} ڕۆژ', style: TextStyle(color: _moonGlow.withOpacity(0.5), fontSize: 12)),
+                Text('$completedCount لە ${_generatedPlan.length} ڕۆژ', style: TextStyle(color: _moonGlow.withValues(alpha: 0.5), fontSize: 12)),
               ],
             ),
           ],
@@ -308,7 +304,7 @@ class _HafizQuranScreenState extends State<HafizQuranScreen> with TickerProvider
         const SizedBox(height: 16),
         LinearProgressIndicator(
           value: progress,
-          backgroundColor: Colors.white.withOpacity(0.05),
+          backgroundColor: Colors.white.withValues(alpha: 0.05),
           color: _green,
           minHeight: 10,
           borderRadius: BorderRadius.circular(5),
@@ -321,92 +317,88 @@ class _HafizQuranScreenState extends State<HafizQuranScreen> with TickerProvider
           itemBuilder: (context, index) {
             final item = _generatedPlan[index];
             final bool isDone = _completedDays[index];
-            final bool isRev = item['type'] == 'Revision';
             
-            return Directionality(
-              textDirection: ui.TextDirection.rtl,
-              child: Container(
-                margin: const EdgeInsets.only(bottom: 12),
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: isDone ? _green.withOpacity(0.1) : _midnight,
-                  borderRadius: BorderRadius.circular(18),
-                  border: Border.all(color: isDone ? _green.withOpacity(0.3) : _accent.withOpacity(0.1)),
-                ),
-                child: Row(
-                  children: [
-                    GestureDetector(
-                      onTap: () => _updateCompletion(index, !isDone),
-                      child: Container(
-                        width: 28, height: 28,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle, 
-                          color: isDone ? _green : Colors.transparent,
-                          border: Border.all(color: isDone ? _green : _starlight.withOpacity(0.2)),
-                        ),
-                        child: isDone ? const Icon(Icons.check, color: Colors.white, size: 18) : null,
+            return Container(
+              margin: const EdgeInsets.only(bottom: 12),
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: isDone ? _green.withValues(alpha: 0.1) : _midnight,
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(color: isDone ? _green.withValues(alpha: 0.3) : _accent.withValues(alpha: 0.1)),
+              ),
+              child: Row(
+                children: [
+                  GestureDetector(
+                    onTap: () => _updateCompletion(index, !isDone),
+                    child: Container(
+                      width: 28, height: 28,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle, 
+                        color: isDone ? _green : Colors.transparent,
+                        border: Border.all(color: isDone ? _green : _starlight.withValues(alpha: 0.2)),
                       ),
+                      child: isDone ? const Icon(Icons.check, color: Colors.white, size: 18) : null,
                     ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  item['task'],
-                                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                                  overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Expanded(
+                              child: Text(
+                                item['task'],
+                                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            if (item['type'] == 'Memorization') ...[
+                              GestureDetector(
+                                onTap: () {
+                                  final audioService = Provider.of<QuranAudioService>(context, listen: false);
+                                  audioService.setHifzMode(true);
+                                  audioService.setRange(item['start_idx'], item['end_idx']);
+                                  
+                                  Navigator.push(context, MaterialPageRoute(builder: (_) => QuranReadingScreen(
+                                    startGlobalIndex: item['start_idx'],
+                                    endGlobalIndex: item['end_idx'],
+                                    title: 'ڕۆژی ${item['day_number']}',
+                                    isHifzMode: true,
+                                  )));
+                                },
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                  decoration: BoxDecoration(color: _green.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(6)),
+                                  child: const Text('گوێگرتن', style: TextStyle(color: _green, fontSize: 10)),
                                 ),
                               ),
-                              if (item['type'] == 'Memorization') ...[
-                                GestureDetector(
-                                  onTap: () {
-                                    final audioService = Provider.of<QuranAudioService>(context, listen: false);
-                                    audioService.setHifzMode(true);
-                                    audioService.setRange(item['start_idx'], item['end_idx']);
-                                    
-                                    Navigator.push(context, MaterialPageRoute(builder: (_) => QuranReadingScreen(
-                                      startGlobalIndex: item['start_idx'],
-                                      endGlobalIndex: item['end_idx'],
-                                      title: 'ڕۆژی ${item['day_number']}',
-                                      isHifzMode: true,
-                                    )));
-                                  },
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                    decoration: BoxDecoration(color: _green.withOpacity(0.1), borderRadius: BorderRadius.circular(6)),
-                                    child: const Text('گوێگرتن', style: TextStyle(color: _green, fontSize: 10)),
-                                  ),
+                              const SizedBox(width: 8),
+                              GestureDetector(
+                                onTap: () {
+                                  Provider.of<QuranAudioService>(context, listen: false).setHifzMode(false);
+                                  Navigator.push(context, MaterialPageRoute(builder: (_) => QuranReadingScreen(
+                                    startGlobalIndex: item['start_idx'],
+                                    endGlobalIndex: item['end_idx'],
+                                    title: 'ڕۆژی ${item['day_number']}',
+                                  )));
+                                },
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                  decoration: BoxDecoration(color: _accent.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(6)),
+                                  child: const Text('خوێندنەوە', style: TextStyle(color: _accent, fontSize: 10)),
                                 ),
-                                const SizedBox(width: 8),
-                                GestureDetector(
-                                  onTap: () {
-                                    Provider.of<QuranAudioService>(context, listen: false).setHifzMode(false);
-                                    Navigator.push(context, MaterialPageRoute(builder: (_) => QuranReadingScreen(
-                                      startGlobalIndex: item['start_idx'],
-                                      endGlobalIndex: item['end_idx'],
-                                      title: 'ڕۆژی ${item['day_number']}',
-                                    )));
-                                  },
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                    decoration: BoxDecoration(color: _accent.withOpacity(0.1), borderRadius: BorderRadius.circular(6)),
-                                    child: const Text('خوێندنەوە', style: TextStyle(color: _accent, fontSize: 10)),
-                                  ),
-                                ),
-                              ],
+                              ),
                             ],
-                          ),
-                          Text(DateFormat('yyyy/MM/dd').format(item['date']), style: TextStyle(color: _moonGlow.withOpacity(0.3), fontSize: 11)),
-                        ],
-                      ),
+                          ],
+                        ),
+                        Text(DateFormat('yyyy/MM/dd').format(item['date']), style: TextStyle(color: _moonGlow.withValues(alpha: 0.3), fontSize: 11)),
+                      ],
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             );
           },
@@ -434,7 +426,7 @@ class _StarfieldPainter extends CustomPainter {
       final rng = math.Random(i * 137);
       final radius = rng.nextDouble() * 1.2 + 0.3;
       final opacity = rng.nextDouble() * 0.45 + 0.1;
-      paint.color = Colors.white.withOpacity(opacity);
+      paint.color = Colors.white.withValues(alpha: opacity);
       canvas.drawCircle(Offset(_stars[i].dx * size.width, _stars[i].dy * size.height), radius, paint);
     }
   }
@@ -442,15 +434,3 @@ class _StarfieldPainter extends CustomPainter {
   bool shouldRepaint(covariant CustomPainter old) => false;
 }
 
-class _GlowBlob extends StatelessWidget {
-  final Color color;
-  final double size;
-  const _GlowBlob({required this.color, required this.size});
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: size, height: size,
-      decoration: BoxDecoration(shape: BoxShape.circle, gradient: RadialGradient(colors: [color, Colors.transparent])),
-    );
-  }
-}

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:tabloy_iman/utils/info_utils.dart';
 import 'dart:convert';
 import 'dart:math' as math;
 
@@ -15,7 +16,6 @@ class _TazbihScreenState extends State<TazbihScreen>
     with TickerProviderStateMixin {
   int _counter = 0;
   int _selectedIndex = 0;
-  bool _isLoading = true;
 
   // Dhikr list with translations
   List<Map<String, String>> _dhikrs = [
@@ -70,11 +70,6 @@ class _TazbihScreenState extends State<TazbihScreen>
       final List<dynamic> decoded = json.decode(dhikrsJson);
       setState(() {
         _dhikrs = decoded.map((item) => Map<String, String>.from(item)).toList();
-        _isLoading = false;
-      });
-    } else {
-      setState(() {
-        _isLoading = false;
       });
     }
   }
@@ -117,7 +112,7 @@ class _TazbihScreenState extends State<TazbihScreen>
         backgroundColor: surface,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
-          side: BorderSide(color: gold.withOpacity(0.3)),
+          side: BorderSide(color: gold.withValues(alpha: 0.3)),
         ),
         title: const Text(
           'زیادکردنی زیکر',
@@ -133,9 +128,9 @@ class _TazbihScreenState extends State<TazbihScreen>
               style: const TextStyle(color: textPrimary),
               decoration: InputDecoration(
                 hintText: 'زیکرەکە بە عەرەبی',
-                hintStyle: TextStyle(color: textPrimary.withOpacity(0.3)),
+                hintStyle: TextStyle(color: textPrimary.withValues(alpha: 0.3)),
                 enabledBorder: UnderlineInputBorder(
-                    borderSide: BorderSide(color: gold.withOpacity(0.3))),
+                    borderSide: BorderSide(color: gold.withValues(alpha: 0.3))),
                 focusedBorder: const UnderlineInputBorder(
                     borderSide: BorderSide(color: gold)),
               ),
@@ -147,9 +142,9 @@ class _TazbihScreenState extends State<TazbihScreen>
               style: const TextStyle(color: textPrimary),
               decoration: InputDecoration(
                 hintText: 'ماناکەی بە کوردی',
-                hintStyle: TextStyle(color: textPrimary.withOpacity(0.3)),
+                hintStyle: TextStyle(color: textPrimary.withValues(alpha: 0.3)),
                 enabledBorder: UnderlineInputBorder(
-                    borderSide: BorderSide(color: gold.withOpacity(0.3))),
+                    borderSide: BorderSide(color: gold.withValues(alpha: 0.3))),
                 focusedBorder: const UnderlineInputBorder(
                     borderSide: BorderSide(color: gold)),
               ),
@@ -226,7 +221,7 @@ class _TazbihScreenState extends State<TazbihScreen>
             Positioned.fill(
               child: AnimatedBuilder(
                 animation: _rotateController,
-                builder: (_, __) => CustomPaint(
+                builder: (_, _) => CustomPaint(
                   painter: _GeometricBgPainter(
                     rotation: _rotateController.value * 2 * math.pi,
                   ),
@@ -247,7 +242,7 @@ class _TazbihScreenState extends State<TazbihScreen>
                     shape: BoxShape.circle,
                     gradient: RadialGradient(
                       colors: [
-                        gold.withOpacity(0.08),
+                        gold.withValues(alpha: 0.08),
                         Colors.transparent,
                       ],
                     ),
@@ -297,6 +292,16 @@ class _TazbihScreenState extends State<TazbihScreen>
                           ),
                         ),
                         IconButton(
+                          icon: const Icon(Icons.info_outline_rounded,
+                              color: textSecondary, size: 20),
+                          onPressed: () => InfoUtils.showInfo(
+                            context,
+                            title: 'تەسبیح',
+                            description: 'تەسبیحی ئەلیکترۆنی بۆ ئەنجامدانی زیکر و تەسبیحات.',
+                            howToUse: 'بە کلیک کردن لەسەر شاشەکە یان دوگمەی تەسبیحەکە، ژمارەی زیکرەکان زیاد دەکات. دەتوانیت زیکرەکان بگۆڕیت یان ژمارەکان سفر بکەیتەوە.',
+                          ),
+                        ),
+                        IconButton(
                           icon: const Icon(Icons.refresh_rounded,
                               color: gold, size: 22),
                           onPressed: _reset,
@@ -326,7 +331,7 @@ class _TazbihScreenState extends State<TazbihScreen>
                                 color: surface,
                                 borderRadius: BorderRadius.circular(8),
                                 border: Border.all(
-                                  color: gold.withOpacity(0.3),
+                                  color: gold.withValues(alpha: 0.3),
                                   width: 1,
                                 ),
                               ),
@@ -379,7 +384,7 @@ class _TazbihScreenState extends State<TazbihScreen>
                                 horizontal: 18, vertical: 10),
                             decoration: BoxDecoration(
                               color: isSelected
-                                  ? gold.withOpacity(0.15)
+                                  ? gold.withValues(alpha: 0.15)
                                   : surface,
                               borderRadius: BorderRadius.circular(8),
                               border: Border.all(
@@ -524,12 +529,12 @@ class _TazbihScreenState extends State<TazbihScreen>
                           shape: BoxShape.circle,
                           color: surface,
                           border: Border.all(
-                            color: gold.withOpacity(0.5),
+                            color: gold.withValues(alpha: 0.5),
                             width: 1.5,
                           ),
                           boxShadow: [
                             BoxShadow(
-                              color: gold.withOpacity(0.15),
+                              color: gold.withValues(alpha: 0.15),
                               blurRadius: 40,
                               spreadRadius: 5,
                             ),
@@ -633,7 +638,7 @@ class _GeometricBgPainter extends CustomPainter {
 
     for (int i = 0; i < 4; i++) {
       final r = 160.0 + i * 70;
-      paint.color = const Color(0xFFD4A853).withOpacity(0.035 - i * 0.006);
+      paint.color = const Color(0xFFD4A853).withValues(alpha: 0.035 - i * 0.006);
       canvas.save();
       canvas.translate(cx, cy);
       canvas.rotate(rotation + i * (math.pi / 8));
@@ -720,7 +725,7 @@ class _OrnamentPainter extends CustomPainter {
     final paint = Paint()
       ..style = PaintingStyle.stroke
       ..strokeWidth = 0.8
-      ..color = gold.withOpacity(0.5);
+      ..color = gold.withValues(alpha: 0.5);
 
     // Inner decorative circle
     canvas.drawCircle(Offset(cx, cy), size.width / 2 - 20, paint);
@@ -733,7 +738,7 @@ class _OrnamentPainter extends CustomPainter {
       final x = cx + r * math.cos(angle);
       final y = cy + r * math.sin(angle);
       canvas.drawCircle(Offset(x, y), 1.5,
-          Paint()..color = gold.withOpacity(0.6));
+          Paint()..color = gold.withValues(alpha: 0.6));
     }
   }
 
@@ -792,7 +797,7 @@ class _GoldDivider extends StatelessWidget {
     return Container(
       width: 1,
       height: 30,
-      color: gold.withOpacity(0.3),
+      color: gold.withValues(alpha: 0.3),
     );
   }
 }

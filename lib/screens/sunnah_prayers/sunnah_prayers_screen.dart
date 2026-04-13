@@ -19,7 +19,6 @@ class _SunnahPrayersScreenState extends State<SunnahPrayersScreen> {
   static const _moonGlow = Color(0xFFE8E2FF);
   static const _accent = Color(0xFFB08AFF);
   static const _gold = Color(0xFFFFD97D);
-  static const _divider = Color(0xFF252A45);
 
   final List<SunnahPrayer> _prayers = [
     SunnahPrayer(
@@ -77,7 +76,7 @@ class _SunnahPrayersScreenState extends State<SunnahPrayersScreen> {
             Expanded(
               child: ValueListenableBuilder<double>(
                 valueListenable: ThemeManager().fontSizeDelta,
-                builder: (context, _, __) {
+                builder: (context, _, _) {
                   return ListView.builder(
                     padding: const EdgeInsets.all(20),
                     itemCount: _prayers.length,
@@ -100,7 +99,7 @@ class _SunnahPrayersScreenState extends State<SunnahPrayersScreen> {
       decoration: BoxDecoration(
         color: _nebula,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: _accent.withOpacity(0.1)),
+        border: Border.all(color: _accent.withValues(alpha: 0.1)),
       ),
       child: Theme(
         data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
@@ -112,7 +111,7 @@ class _SunnahPrayersScreenState extends State<SunnahPrayersScreen> {
           ),
           subtitle: Text(
             prayer.subtitle,
-            style: KurdishStyles.getKurdishStyle(fontSize: 12, color: _moonGlow.withOpacity(0.5)),
+            style: KurdishStyles.getKurdishStyle(fontSize: 12, color: _moonGlow.withValues(alpha: 0.5)),
             textAlign: TextAlign.right,
           ),
           iconColor: _accent,
@@ -122,7 +121,7 @@ class _SunnahPrayersScreenState extends State<SunnahPrayersScreen> {
           children: [
             Text(
               prayer.description,
-              style: KurdishStyles.getKurdishStyle(fontSize: 14, color: _moonGlow.withOpacity(0.8)),
+              style: KurdishStyles.getKurdishStyle(fontSize: 14, color: _moonGlow.withValues(alpha: 0.8)),
               textAlign: TextAlign.right,
             ),
             const SizedBox(height: 20),
@@ -154,7 +153,7 @@ class _SunnahPrayersScreenState extends State<SunnahPrayersScreen> {
                 decoration: BoxDecoration(
                   color: _midnight,
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: _gold.withOpacity(0.2)),
+                  border: Border.all(color: _gold.withValues(alpha: 0.2)),
                 ),
                 child: Text(
                   prayer.duaArabic!,
@@ -166,7 +165,7 @@ class _SunnahPrayersScreenState extends State<SunnahPrayersScreen> {
               const SizedBox(height: 16),
               Text(
                 prayer.duaKurdish!,
-                style: KurdishStyles.getKurdishStyle(fontSize: 14, color: _moonGlow.withOpacity(0.7)),
+                style: KurdishStyles.getKurdishStyle(fontSize: 14, color: _moonGlow.withValues(alpha: 0.7)),
                 textAlign: TextAlign.right,
                 textDirection: TextDirection.rtl,
               ),
@@ -206,3 +205,4 @@ class SunnahPrayer {
     this.duaKurdish,
   });
 }
+

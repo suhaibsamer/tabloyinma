@@ -84,7 +84,9 @@ class _NameDictionaryScreenState extends State<NameDictionaryScreen>
       if (genderFilter != null && gender != genderFilter) return false;
       if (query.isNotEmpty &&
           !name.toLowerCase().contains(query) &&
-          !meaning.toLowerCase().contains(query)) return false;
+          !meaning.toLowerCase().contains(query)) {
+        return false;
+      }
       return true;
     }).toList();
 
@@ -160,7 +162,7 @@ class _NameDictionaryScreenState extends State<NameDictionaryScreen>
               decoration: BoxDecoration(
                 color: _accentGlow,
                 borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: _accent.withOpacity(0.3)),
+                border: Border.all(color: _accent.withValues(alpha: 0.3)),
               ),
               child: const Icon(Icons.sync_rounded, color: _accentSoft, size: 18),
             ),
@@ -188,7 +190,7 @@ class _NameDictionaryScreenState extends State<NameDictionaryScreen>
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     gradient: RadialGradient(
-                      colors: [_accent.withOpacity(0.16), Colors.transparent],
+                      colors: [_accent.withValues(alpha: 0.16), Colors.transparent],
                     ),
                   ),
                 ),
@@ -222,7 +224,7 @@ class _NameDictionaryScreenState extends State<NameDictionaryScreen>
                               color: _accentSoft,
                               shape: BoxShape.circle,
                               boxShadow: [BoxShadow(
-                                color: _accent.withOpacity(0.9),
+                                color: _accent.withValues(alpha: 0.9),
                                 blurRadius: 6,
                               )],
                             ),
@@ -263,8 +265,8 @@ class _NameDictionaryScreenState extends State<NameDictionaryScreen>
         controller: _tabController,
         indicator: BoxDecoration(
           borderRadius: BorderRadius.circular(8),
-          color: _accent.withOpacity(0.15),
-          border: Border.all(color: _accent.withOpacity(0.4), width: 1),
+          color: _accent.withValues(alpha: 0.15),
+          border: Border.all(color: _accent.withValues(alpha: 0.4), width: 1),
         ),
         indicatorSize: TabBarIndicatorSize.tab,
         indicatorPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
@@ -293,14 +295,14 @@ class _NameDictionaryScreenState extends State<NameDictionaryScreen>
           color: _surfaceHigh,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: hasText ? _accent.withOpacity(0.5) : _border,
+            color: hasText ? _accent.withValues(alpha: 0.5) : _border,
             width: 1.5,
           ),
           boxShadow: [
             BoxShadow(
               color: hasText
-                  ? _accent.withOpacity(0.1)
-                  : Colors.black.withOpacity(0.15),
+                  ? _accent.withValues(alpha: 0.1)
+                  : Colors.black.withValues(alpha: 0.15),
               blurRadius: 14,
               offset: const Offset(0, 4),
             ),
@@ -351,7 +353,7 @@ class _NameDictionaryScreenState extends State<NameDictionaryScreen>
             Text(
               'لە $total',
               style: TextStyle(
-                color: _textSecondary.withOpacity(0.6),
+                color: _textSecondary.withValues(alpha: 0.6),
                 fontSize: 12,
               ),
             ),
@@ -360,9 +362,9 @@ class _NameDictionaryScreenState extends State<NameDictionaryScreen>
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
             decoration: BoxDecoration(
-              color: _accent.withOpacity(0.12),
+              color: _accent.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: _accent.withOpacity(0.25)),
+              border: Border.all(color: _accent.withValues(alpha: 0.25)),
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
@@ -446,7 +448,7 @@ class _MeaningBottomSheet extends StatelessWidget {
         color: _surface,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
         border: Border(
-          top: BorderSide(color: color.withOpacity(0.3), width: 1.5),
+          top: BorderSide(color: color.withValues(alpha: 0.3), width: 1.5),
         ),
       ),
       child: Column(
@@ -466,9 +468,9 @@ class _MeaningBottomSheet extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
-                  color: color.withOpacity(0.1),
+                  color: color.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: color.withOpacity(0.3)),
+                  border: Border.all(color: color.withValues(alpha: 0.3)),
                 ),
                 child: Row(
                   children: [
@@ -487,7 +489,7 @@ class _MeaningBottomSheet extends StatelessWidget {
                   color: _textPrimary,
                   fontSize: 30,
                   fontWeight: FontWeight.w800,
-                  shadows: [Shadow(color: color.withOpacity(0.3), blurRadius: 12)],
+                  shadows: [Shadow(color: color.withValues(alpha: 0.3), blurRadius: 12)],
                 ),
               ),
             ],
@@ -508,7 +510,7 @@ class _MeaningBottomSheet extends StatelessWidget {
                   height: 1,
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
-                      colors: [Colors.transparent, _accentSoft.withOpacity(0.3)],
+                      colors: [Colors.transparent, _accentSoft.withValues(alpha: 0.3)],
                     ),
                   ),
                 ),
@@ -599,7 +601,7 @@ class _NameCard extends StatelessWidget {
           border: Border.all(color: _border, width: 1),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.15),
+              color: Colors.black.withValues(alpha: 0.15),
               blurRadius: 8,
               offset: const Offset(0, 2),
             ),
@@ -614,9 +616,9 @@ class _NameCard extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
                   decoration: BoxDecoration(
-                    color: color.withOpacity(0.1),
+                    color: color.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: color.withOpacity(0.25)),
+                    border: Border.all(color: color.withValues(alpha: 0.25)),
                   ),
                   child: Row(
                     children: [
@@ -633,7 +635,7 @@ class _NameCard extends StatelessWidget {
                 ),
                 const SizedBox(width: 6),
                 Icon(Icons.chevron_right_rounded,
-                    color: _textSecondary.withOpacity(0.4), size: 18),
+                    color: _textSecondary.withValues(alpha: 0.4), size: 18),
               ],
             ),
             const SizedBox(width: 12),
@@ -652,7 +654,7 @@ class _NameCard extends StatelessWidget {
                       textDirection: TextDirection.rtl,
                       textAlign: TextAlign.right,
                       style: TextStyle(
-                          color: _textSecondary.withOpacity(0.8),
+                          color: _textSecondary.withValues(alpha: 0.8),
                           fontSize: 12,
                           height: 1.5)),
                 ],
@@ -700,7 +702,7 @@ class _ErrorView extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-                color: Colors.red.withOpacity(0.1), shape: BoxShape.circle),
+                color: Colors.red.withValues(alpha: 0.1), shape: BoxShape.circle),
             child: const Icon(Icons.error_outline_rounded,
                 color: Colors.redAccent, size: 36),
           ),

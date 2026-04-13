@@ -23,8 +23,8 @@ class _LibraryScreenState extends State<LibraryScreen> {
     ),
   ];
 
-  Map<String, double> _downloadProgress = {};
-  Map<String, bool> _isDownloaded = {};
+  final Map<String, double> _downloadProgress = {};
+  final Map<String, bool> _isDownloaded = {};
 
   @override
   void initState() {
@@ -126,7 +126,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
                       color: midnight,
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(
-                        color: isDownloaded ? accent.withOpacity(0.3) : Colors.white10,
+                        color: isDownloaded ? accent.withValues(alpha: 0.3) : Colors.white10,
                       ),
                     ),
                     child: Row(
@@ -161,7 +161,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
                               Text(
                                 book.author,
                                 style: TextStyle(
-                                  color: Colors.white.withOpacity(0.5),
+                                  color: Colors.white.withValues(alpha: 0.5),
                                   fontSize: 12,
                                 ),
                                 textDirection: TextDirection.rtl,
@@ -216,7 +216,7 @@ class _StarfieldPainter extends CustomPainter {
       final rng = math.Random(i * 137);
       final radius = rng.nextDouble() * 1.2 + 0.3;
       final opacity = rng.nextDouble() * 0.45 + 0.1;
-      paint.color = Colors.white.withOpacity(opacity);
+      paint.color = Colors.white.withValues(alpha: opacity);
       canvas.drawCircle(
         Offset(_stars[i].dx * size.width, _stars[i].dy * size.height),
         radius,
@@ -228,3 +228,4 @@ class _StarfieldPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant CustomPainter old) => false;
 }
+

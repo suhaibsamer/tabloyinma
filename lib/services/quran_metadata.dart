@@ -77,3 +77,4 @@ class QuranMetadata {
   static String getSurahName(int number) => surahNames[number] ?? 'سُورَةُ مجهولة';
   static int getVerseCount(int number) => verseCounts[number] ?? 0;
 }
+

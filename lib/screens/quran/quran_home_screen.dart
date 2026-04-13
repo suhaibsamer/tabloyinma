@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:tabloy_iman/services/quran_service.dart';
 import 'package:tabloy_iman/utils/kurdish_styles.dart';
+import 'package:tabloy_iman/utils/info_utils.dart';
 import 'quran_chapter_screen.dart';
 import 'quran_bookmarks_screen.dart';
 import 'dart:math' as math;
@@ -102,7 +103,7 @@ class _QuranHomeScreenState extends State<QuranHomeScreen>
             margin: const EdgeInsets.all(16),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(16),
-              side: BorderSide(color: Colors.red.shade700.withOpacity(0.5)),
+              side: BorderSide(color: Colors.red.shade700.withValues(alpha: 0.5)),
             ),
           ),
         );
@@ -131,13 +132,13 @@ class _QuranHomeScreenState extends State<QuranHomeScreen>
           Positioned(
             top: -60,
             right: -60,
-            child: _GlowBlob(color: _greenDim.withOpacity(0.2), size: 260),
+            child: _GlowBlob(color: _greenDim.withValues(alpha: 0.2), size: 260),
           ),
           Positioned(
             top: 220,
             left: -50,
             child: _GlowBlob(
-                color: const Color(0xFF7B5CF0).withOpacity(0.1), size: 200),
+                color: const Color(0xFF7B5CF0).withValues(alpha: 0.1), size: 200),
           ),
           CustomScrollView(
             controller: _scrollController,
@@ -191,6 +192,31 @@ class _QuranHomeScreenState extends State<QuranHomeScreen>
       iconTheme: const IconThemeData(color: _moonGlow),
       actions: [
         Padding(
+          padding: const EdgeInsets.only(right: 8),
+          child: GestureDetector(
+            onTap: () => InfoUtils.showInfo(
+              context,
+              title: 'قورئانی پیرۆز',
+              description: 'خوێندنەوەی قورئانی پیرۆز بە نوسین و دەنگی قورئانخوێنە جیاوازەکان.',
+              howToUse: 'دەتوانیت سورەتەکان هەڵبژێریت، گوێ لە دەنگی قورئان بگریت و نیشانە دابنێیت (Bookmark) بۆ ئەو شوێنەی پێی گەیشتوویت.',
+            ),
+            child: Container(
+              width: 38,
+              height: 38,
+              decoration: BoxDecoration(
+                color: _nebula,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: _green.withValues(alpha: 0.25),
+                  width: 1,
+                ),
+              ),
+              child: const Icon(Icons.info_outline_rounded,
+                  color: _green, size: 18),
+            ),
+          ),
+        ),
+        Padding(
           padding: const EdgeInsets.only(right: 12),
           child: GestureDetector(
             onTap: () {
@@ -208,7 +234,7 @@ class _QuranHomeScreenState extends State<QuranHomeScreen>
                 color: _nebula,
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: const Color(0xFF059669).withOpacity(0.25),
+                  color: const Color(0xFF059669).withValues(alpha: 0.25),
                   width: 1,
                 ),
               ),
@@ -258,7 +284,7 @@ class _QuranHomeScreenState extends State<QuranHomeScreen>
                   center: Alignment.topCenter,
                   radius: 0.9,
                   colors: [
-                    _greenDim.withOpacity(0.3),
+                    _greenDim.withValues(alpha: 0.3),
                     Colors.transparent,
                   ],
                 ),
@@ -276,7 +302,7 @@ class _QuranHomeScreenState extends State<QuranHomeScreen>
                 gradient: LinearGradient(
                   colors: [
                     Colors.transparent,
-                    _green.withOpacity(0.25),
+                    _green.withValues(alpha: 0.25),
                     Colors.transparent,
                   ],
                 ),
@@ -297,12 +323,12 @@ class _QuranHomeScreenState extends State<QuranHomeScreen>
                     shape: BoxShape.circle,
                     gradient: RadialGradient(
                       colors: [
-                        _greenDim.withOpacity(0.45),
-                        _greenDim.withOpacity(0.05),
+                        _greenDim.withValues(alpha: 0.45),
+                        _greenDim.withValues(alpha: 0.05),
                       ],
                     ),
                     border: Border.all(
-                        color: _green.withOpacity(0.35), width: 1.5),
+                        color: _green.withValues(alpha: 0.35), width: 1.5),
                   ),
                   child: const Center(
                     child: Text('☪️', style: TextStyle(fontSize: 36)),
@@ -328,7 +354,7 @@ class _QuranHomeScreenState extends State<QuranHomeScreen>
                     Container(
                       width: 1,
                       height: 16,
-                      color: _green.withOpacity(0.2),
+                      color: _green.withValues(alpha: 0.2),
                       margin: const EdgeInsets.symmetric(horizontal: 12),
                     ),
                     _buildStatBadge('٦٢٣٦', 'ئایەت'),
@@ -346,9 +372,9 @@ class _QuranHomeScreenState extends State<QuranHomeScreen>
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
       decoration: BoxDecoration(
-        color: _green.withOpacity(0.08),
+        color: _green.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: _green.withOpacity(0.25), width: 1),
+        border: Border.all(color: _green.withValues(alpha: 0.25), width: 1),
       ),
       child: Row(
         children: [
@@ -366,7 +392,7 @@ class _QuranHomeScreenState extends State<QuranHomeScreen>
             style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w500,
-              color: _moonGlow.withOpacity(0.5),
+              color: _moonGlow.withValues(alpha: 0.5),
             ),
             textDirection: TextDirection.rtl,
           ),
@@ -382,10 +408,10 @@ class _QuranHomeScreenState extends State<QuranHomeScreen>
       decoration: BoxDecoration(
         color: _midnight,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: _green.withOpacity(0.2), width: 1),
+        border: Border.all(color: _green.withValues(alpha: 0.2), width: 1),
         boxShadow: [
           BoxShadow(
-            color: _green.withOpacity(0.05),
+            color: _green.withValues(alpha: 0.05),
             blurRadius: 14,
             offset: const Offset(0, 4),
           ),
@@ -399,7 +425,7 @@ class _QuranHomeScreenState extends State<QuranHomeScreen>
         decoration: InputDecoration(
           hintText: 'ابحث عن سورة...',
           hintStyle: TextStyle(
-            color: _moonGlow.withOpacity(0.3),
+            color: _moonGlow.withValues(alpha: 0.3),
             fontSize: 14,
           ),
           border: InputBorder.none,
@@ -408,7 +434,7 @@ class _QuranHomeScreenState extends State<QuranHomeScreen>
           prefixIcon: Padding(
             padding: const EdgeInsets.only(left: 14),
             child:
-                Icon(Icons.search_rounded, color: _green.withOpacity(0.6), size: 22),
+                Icon(Icons.search_rounded, color: _green.withValues(alpha: 0.6), size: 22),
           ),
           suffixIcon: _searchController.text.isNotEmpty
               ? GestureDetector(
@@ -420,7 +446,7 @@ class _QuranHomeScreenState extends State<QuranHomeScreen>
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Icon(Icons.close_rounded,
-                        color: _moonGlow.withOpacity(0.45), size: 16),
+                        color: _moonGlow.withValues(alpha: 0.45), size: 16),
                   ),
                 )
               : null,
@@ -444,9 +470,9 @@ class _QuranHomeScreenState extends State<QuranHomeScreen>
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 color: _midnight,
-                border: Border.all(color: _green.withOpacity(0.3), width: 1),
+                border: Border.all(color: _green.withValues(alpha: 0.3), width: 1),
                 boxShadow: [
-                  BoxShadow(color: _green.withOpacity(0.1), blurRadius: 24),
+                  BoxShadow(color: _green.withValues(alpha: 0.1), blurRadius: 24),
                 ],
               ),
               child: const Center(
@@ -461,7 +487,7 @@ class _QuranHomeScreenState extends State<QuranHomeScreen>
               'جاري تحميل القرآن الكريم...',
               style: TextStyle(
                 fontSize: 14,
-                color: _moonGlow.withOpacity(0.4),
+                color: _moonGlow.withValues(alpha: 0.4),
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -484,7 +510,7 @@ class _QuranHomeScreenState extends State<QuranHomeScreen>
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 color: _midnight,
-                border: Border.all(color: _green.withOpacity(0.2), width: 1),
+                border: Border.all(color: _green.withValues(alpha: 0.2), width: 1),
               ),
               child:
                   const Center(child: Text('🔍', style: TextStyle(fontSize: 34))),
@@ -494,7 +520,7 @@ class _QuranHomeScreenState extends State<QuranHomeScreen>
               'لم يتم العثور على نتائج',
               style: TextStyle(
                 fontSize: 15,
-                color: _moonGlow.withOpacity(0.4),
+                color: _moonGlow.withValues(alpha: 0.4),
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -508,7 +534,7 @@ class _QuranHomeScreenState extends State<QuranHomeScreen>
                   color: _nebula,
                   borderRadius: BorderRadius.circular(12),
                   border:
-                      Border.all(color: _green.withOpacity(0.25), width: 1),
+                      Border.all(color: _green.withValues(alpha: 0.25), width: 1),
                 ),
                 child: const Text(
                   'پاکردنەوەی گەڕان',
@@ -575,10 +601,10 @@ class _QuranHomeScreenState extends State<QuranHomeScreen>
           decoration: BoxDecoration(
             color: _midnight,
             borderRadius: BorderRadius.circular(18),
-            border: Border.all(color: tint.withOpacity(0.18), width: 1),
+            border: Border.all(color: tint.withValues(alpha: 0.18), width: 1),
             boxShadow: [
               BoxShadow(
-                color: tint.withOpacity(0.06),
+                color: tint.withValues(alpha: 0.06),
                 blurRadius: 14,
                 offset: const Offset(0, 4),
               ),
@@ -597,12 +623,12 @@ class _QuranHomeScreenState extends State<QuranHomeScreen>
                     shape: BoxShape.circle,
                     gradient: RadialGradient(
                       colors: [
-                        tint.withOpacity(0.3),
-                        tint.withOpacity(0.08),
+                        tint.withValues(alpha: 0.3),
+                        tint.withValues(alpha: 0.08),
                       ],
                     ),
                     border:
-                        Border.all(color: tint.withOpacity(0.35), width: 1),
+                        Border.all(color: tint.withValues(alpha: 0.35), width: 1),
                   ),
                   child: Center(
                     child: Text(
@@ -633,17 +659,17 @@ class _QuranHomeScreenState extends State<QuranHomeScreen>
                         padding: const EdgeInsets.symmetric(
                             horizontal: 10, vertical: 3),
                         decoration: BoxDecoration(
-                          color: tint.withOpacity(0.08),
+                          color: tint.withValues(alpha: 0.08),
                           borderRadius: BorderRadius.circular(20),
                           border: Border.all(
-                              color: tint.withOpacity(0.22), width: 1),
+                              color: tint.withValues(alpha: 0.22), width: 1),
                         ),
                         child: Text(
                           'آيات: $versesCount',
                           style: TextStyle(
                             fontSize: 11,
                             fontWeight: FontWeight.w600,
-                            color: tint.withOpacity(0.85),
+                            color: tint.withValues(alpha: 0.85),
                             letterSpacing: 0.3,
                           ),
                           textDirection: TextDirection.rtl,
@@ -658,14 +684,14 @@ class _QuranHomeScreenState extends State<QuranHomeScreen>
                   width: 30,
                   height: 30,
                   decoration: BoxDecoration(
-                    color: tint.withOpacity(0.08),
+                    color: tint.withValues(alpha: 0.08),
                     borderRadius: BorderRadius.circular(9),
                     border: Border.all(
-                        color: tint.withOpacity(0.2), width: 1),
+                        color: tint.withValues(alpha: 0.2), width: 1),
                   ),
                   child: Icon(
                     Icons.arrow_forward_ios_rounded,
-                    color: tint.withOpacity(0.7),
+                    color: tint.withValues(alpha: 0.7),
                     size: 13,
                   ),
                 ),
@@ -765,7 +791,7 @@ class _StarfieldPainter extends CustomPainter {
       final rng = math.Random(i * 137);
       final radius = rng.nextDouble() * 1.2 + 0.3;
       final opacity = rng.nextDouble() * 0.45 + 0.1;
-      paint.color = Colors.white.withOpacity(opacity);
+      paint.color = Colors.white.withValues(alpha: opacity);
       canvas.drawCircle(
         Offset(_stars[i].dx * size.width, _stars[i].dy * size.height),
         radius,

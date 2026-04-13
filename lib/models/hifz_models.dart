@@ -29,3 +29,4 @@ class HifzGoal {
     this.completedVerses = 0,
   });
 }
+

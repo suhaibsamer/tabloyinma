@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
+import 'package:tabloy_iman/utils/info_utils.dart';
 
 class AllahNamesScreen extends StatefulWidget {
   const AllahNamesScreen({super.key});
@@ -16,15 +17,12 @@ class _AllahNamesScreenState extends State<AllahNamesScreen>
   static const _surfaceHigh = Color(0xFF1A1A2E);
   static const _border = Color(0xFF252540);
   static const _gold = Color(0xFFD4A853);
-  static const _goldLight = Color(0xFFF0C97A);
   static const _goldGlow = Color(0xFFFFE4A0);
   static const _text = Color(0xFFF5F0E8);
   static const _textMuted = Color(0xFF8A8599);
-  static const _teal = Color(0xFF2DD4BF);
 
   late final AnimationController _fadeController;
   late final AnimationController _shimmerController;
-  int? _hoveredIndex;
 
   final List<Map<String, dynamic>> names = const [
     {"arabic": "الله", "kurdish": "خوای گەورە", "number": 1},
@@ -168,7 +166,7 @@ class _AllahNamesScreenState extends State<AllahNamesScreen>
                   shape: BoxShape.circle,
                   gradient: RadialGradient(
                     colors: [
-                      _gold.withOpacity(0.10),
+                      _gold.withValues(alpha: 0.10),
                       Colors.transparent,
                     ],
                   ),
@@ -253,18 +251,26 @@ class _AllahNamesScreenState extends State<AllahNamesScreen>
             ),
           ),
           const Spacer(),
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: _surfaceHigh,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: _border, width: 1),
+          GestureDetector(
+            onTap: () => InfoUtils.showInfo(
+              context,
+              title: 'ناوی خوای گەورە',
+              description: 'ئەم بەشە پێکهاتووە لە ٩٩ ناوی پیرۆزی خوای گەورە لەگەڵ وەرگێڕانی کوردی بۆ هەر ناوێک.',
+              howToUse: 'دەتوانیت لیستەکە ببینی و بە نێو ناوەکاندا بگەڕێیت بۆ فێربوونی مانا و دەربڕینی ناوە پیرۆزەکانی خودا.',
             ),
-            child: const Icon(
-              Icons.search_rounded,
-              color: _textMuted,
-              size: 18,
+            child: Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: _surfaceHigh,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: _border, width: 1),
+              ),
+              child: const Icon(
+                Icons.info_outline_rounded,
+                color: _gold,
+                size: 18,
+              ),
             ),
           ),
         ],
@@ -280,7 +286,7 @@ class _AllahNamesScreenState extends State<AllahNamesScreen>
         decoration: BoxDecoration(
           color: _surface,
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: _gold.withOpacity(0.18), width: 1),
+          border: Border.all(color: _gold.withValues(alpha: 0.18), width: 1),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -336,15 +342,12 @@ class _AnimatedNameCard extends StatefulWidget {
 
 class _AnimatedNameCardState extends State<_AnimatedNameCard>
     with SingleTickerProviderStateMixin {
-  static const _bg = Color(0xFF0A0A12);
   static const _surface = Color(0xFF12121E);
   static const _surfaceHigh = Color(0xFF1A1A2E);
   static const _border = Color(0xFF252540);
   static const _gold = Color(0xFFD4A853);
   static const _goldLight = Color(0xFFF0C97A);
-  static const _text = Color(0xFFF5F0E8);
   static const _textMuted = Color(0xFF8A8599);
-  static const _teal = Color(0xFF2DD4BF);
 
   bool _pressed = false;
   late AnimationController _entryController;
@@ -416,14 +419,14 @@ class _AnimatedNameCardState extends State<_AnimatedNameCard>
         color: isFirst ? null : _surface,
         border: Border.all(
           color: isFirst
-              ? _gold.withOpacity(0.45)
+              ? _gold.withValues(alpha: 0.45)
               : _border,
           width: isFirst ? 1.5 : 1.0,
         ),
         boxShadow: isFirst
             ? [
           BoxShadow(
-            color: _gold.withOpacity(0.15),
+            color: _gold.withValues(alpha: 0.15),
             blurRadius: 20,
             spreadRadius: 0,
             offset: const Offset(0, 4),
@@ -431,7 +434,7 @@ class _AnimatedNameCardState extends State<_AnimatedNameCard>
         ]
             : [
           BoxShadow(
-            color: Colors.black.withOpacity(0.25),
+            color: Colors.black.withValues(alpha: 0.25),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -448,12 +451,12 @@ class _AnimatedNameCardState extends State<_AnimatedNameCard>
               height: 26,
               decoration: BoxDecoration(
                 color: isFirst
-                    ? _gold.withOpacity(0.15)
+                    ? _gold.withValues(alpha: 0.15)
                     : _surfaceHigh,
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(
                   color: isFirst
-                      ? _gold.withOpacity(0.3)
+                      ? _gold.withValues(alpha: 0.3)
                       : _border,
                   width: 1,
                 ),
@@ -540,7 +543,7 @@ class _AnimatedNameCardState extends State<_AnimatedNameCard>
                       gradient: LinearGradient(
                         colors: [
                           Colors.transparent,
-                          isFirst ? _gold.withOpacity(0.6) : _border,
+                          isFirst ? _gold.withValues(alpha: 0.6) : _border,
                           Colors.transparent,
                         ],
                       ),
@@ -552,7 +555,7 @@ class _AnimatedNameCardState extends State<_AnimatedNameCard>
                     widget.name['kurdish']!,
                     style: TextStyle(
                       fontSize: 12,
-                      color: isFirst ? _goldLight.withOpacity(0.85) : _textMuted,
+                      color: isFirst ? _goldLight.withValues(alpha: 0.85) : _textMuted,
                       fontWeight: FontWeight.w600,
                       height: 1.4,
                     ),
@@ -585,7 +588,7 @@ class _GeometricPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = const Color(0xFFD4A853).withOpacity(0.025)
+      ..color = const Color(0xFFD4A853).withValues(alpha: 0.025)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 0.8;
 
@@ -620,3 +623,4 @@ class _GeometricPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant CustomPainter old) => false;
 }
+

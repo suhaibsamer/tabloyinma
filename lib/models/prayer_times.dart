@@ -63,3 +63,4 @@ class PrayerNames {
     'isha': 'خەوتنان',
   };
 }
+

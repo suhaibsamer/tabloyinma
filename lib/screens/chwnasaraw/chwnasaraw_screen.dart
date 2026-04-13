@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'dart:math' as math;
 
 class ChwnaSarAwScreen extends StatefulWidget {
   const ChwnaSarAwScreen({super.key});
@@ -12,7 +11,6 @@ class _ChwnaSarAwScreenState extends State<ChwnaSarAwScreen>
     with TickerProviderStateMixin {
   // ── Palette ────────────────────────────────────────────────────────────
   static const _bg = Color(0xFF050C0A);
-  static const _surface = Color(0xFF0C1712);
   static const _surfaceHigh = Color(0xFF122018);
   static const _border = Color(0xFF1C3028);
   static const _emerald = Color(0xFF10C98A);
@@ -20,7 +18,6 @@ class _ChwnaSarAwScreenState extends State<ChwnaSarAwScreen>
   static const _emeraldGlow = Color(0xFF6EFFD4);
   static const _text = Color(0xFFE8F5F0);
   static const _textMuted = Color(0xFF5A8070);
-  static const _arabic = Color(0xFFB8FFE5);
 
   late final AnimationController _fadeController;
   late final AnimationController _pulseController;
@@ -57,14 +54,14 @@ class _ChwnaSarAwScreenState extends State<ChwnaSarAwScreen>
             right: -80,
             child: AnimatedBuilder(
               animation: _pulseController,
-              builder: (_, __) => Container(
+              builder: (_, _) => Container(
                 width: 320,
                 height: 320,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   gradient: RadialGradient(
                     colors: [
-                      _emerald.withOpacity(
+                      _emerald.withValues(alpha: 
                           0.06 + _pulseController.value * 0.03),
                       Colors.transparent,
                     ],
@@ -83,7 +80,7 @@ class _ChwnaSarAwScreenState extends State<ChwnaSarAwScreen>
                 shape: BoxShape.circle,
                 gradient: RadialGradient(
                   colors: [
-                    _emeraldDim.withOpacity(0.07),
+                    _emeraldDim.withValues(alpha: 0.07),
                     Colors.transparent,
                   ],
                 ),
@@ -205,7 +202,7 @@ class _ChwnaSarAwScreenState extends State<ChwnaSarAwScreen>
             ),
             child: Icon(
               Icons.water_drop_outlined,
-              color: _emerald.withOpacity(0.7),
+              color: _emerald.withValues(alpha: 0.7),
               size: 18,
             ),
           ),
@@ -250,7 +247,6 @@ class _DhikrCardState extends State<_DhikrCard>
   static const _border = Color(0xFF1C3028);
   static const _emerald = Color(0xFF10C98A);
   static const _emeraldDim = Color(0xFF0A7A55);
-  static const _emeraldGlow = Color(0xFF6EFFD4);
   static const _text = Color(0xFFE8F5F0);
   static const _textMuted = Color(0xFF5A8070);
   static const _arabic = Color(0xFFB8FFE5);
@@ -300,7 +296,7 @@ class _DhikrCardState extends State<_DhikrCard>
           border: Border.all(color: _border, width: 1),
           boxShadow: [
             BoxShadow(
-              color: _emerald.withOpacity(0.04),
+              color: _emerald.withValues(alpha: 0.04),
               blurRadius: 24,
               offset: const Offset(0, 8),
             ),
@@ -324,10 +320,10 @@ class _DhikrCardState extends State<_DhikrCard>
                     width: 32,
                     height: 32,
                     decoration: BoxDecoration(
-                      color: _emerald.withOpacity(0.1),
+                      color: _emerald.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(10),
                       border: Border.all(
-                          color: _emerald.withOpacity(0.25), width: 1),
+                          color: _emerald.withValues(alpha: 0.25), width: 1),
                     ),
                     child: Center(
                       child: Text(
@@ -376,13 +372,13 @@ class _DhikrCardState extends State<_DhikrCard>
                   Container(
                     padding: const EdgeInsets.all(6),
                     decoration: BoxDecoration(
-                      color: _emerald.withOpacity(0.08),
+                      color: _emerald.withValues(alpha: 0.08),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Icon(
                       Icons.info_outline_rounded,
                       size: 14,
-                      color: _emerald.withOpacity(0.6),
+                      color: _emerald.withValues(alpha: 0.6),
                     ),
                   ),
                 ],
@@ -404,14 +400,14 @@ class _DhikrCardState extends State<_DhikrCard>
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                       colors: [
-                        _emerald.withOpacity(
+                        _emerald.withValues(alpha: 
                             0.07 + widget.pulseController.value * 0.025),
-                        _emeraldDim.withOpacity(0.04),
+                        _emeraldDim.withValues(alpha: 0.04),
                       ],
                     ),
                     borderRadius: BorderRadius.circular(18),
                     border: Border.all(
-                      color: _emerald.withOpacity(
+                      color: _emerald.withValues(alpha: 
                           0.18 + widget.pulseController.value * 0.08),
                       width: 1,
                     ),
@@ -436,7 +432,7 @@ class _DhikrCardState extends State<_DhikrCard>
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 24),
                         child: Divider(
-                          color: _emerald.withOpacity(0.15),
+                          color: _emerald.withValues(alpha: 0.15),
                           height: 20,
                         ),
                       ),
@@ -445,7 +441,7 @@ class _DhikrCardState extends State<_DhikrCard>
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontSize: 12,
-                          color: _emerald.withOpacity(0.65),
+                          color: _emerald.withValues(alpha: 0.65),
                           height: 1.6,
                           fontStyle: FontStyle.italic,
                         ),
@@ -485,14 +481,14 @@ class _DhikrCardState extends State<_DhikrCard>
                             child: Icon(
                               Icons.expand_more_rounded,
                               size: 16,
-                              color: _emerald.withOpacity(0.6),
+                              color: _emerald.withValues(alpha: 0.6),
                             ),
                           ),
                           const SizedBox(width: 8),
                           Icon(
                             Icons.menu_book_rounded,
                             size: 14,
-                            color: _emerald.withOpacity(0.5),
+                            color: _emerald.withValues(alpha: 0.5),
                           ),
                           const SizedBox(width: 6),
                           Text(
@@ -560,7 +556,7 @@ class _DotGridPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = const Color(0xFF10C98A).withOpacity(0.04)
+      ..color = const Color(0xFF10C98A).withValues(alpha: 0.04)
       ..style = PaintingStyle.fill;
 
     const spacing = 28.0;

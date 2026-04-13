@@ -12,7 +12,7 @@ struct Provider: TimelineProvider {
     }
 
     func getTimeline(in context: Context, completion: @escaping (Timeline<Entry>) -> ()) {
-        let userDefaults = UserDefaults(suiteName: "group.com.example.tabloy_iman")
+        let userDefaults = UserDefaults(suiteName: "group.com.teestudio.tabloyiman")
         let prayerTimesJson = userDefaults?.string(forKey: "prayer_times") ?? "{}"
         let duaBatchJson = userDefaults?.string(forKey: "dua_batch") ?? "[]"
         

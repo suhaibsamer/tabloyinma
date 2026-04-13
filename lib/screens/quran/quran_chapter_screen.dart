@@ -17,10 +17,10 @@ class QuranChapterScreen extends StatefulWidget {
   final String chapterName;
 
   const QuranChapterScreen({
-    Key? key,
+    super.key,
     required this.chapterNumber,
     required this.chapterName,
-  }) : super(key: key);
+  });
 
   @override
   _QuranChapterScreenState createState() => _QuranChapterScreenState();
@@ -141,7 +141,7 @@ class _QuranChapterScreenState extends State<QuranChapterScreen>
         margin: const EdgeInsets.all(16),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
-          side: BorderSide(color: isError ? Colors.red.shade700.withOpacity(0.5) : _teal.withOpacity(0.5)),
+          side: BorderSide(color: isError ? Colors.red.shade700.withValues(alpha: 0.5) : _teal.withValues(alpha: 0.5)),
         ),
       ),
     );
@@ -186,8 +186,8 @@ class _QuranChapterScreenState extends State<QuranChapterScreen>
           body: Stack(
             children: [
               const Positioned.fill(child: _StarfieldBackground()),
-              Positioned(top: -60, left: -60, child: _GlowBlob(color: _tealDim.withOpacity(0.18), size: 260)),
-              Positioned(top: 160, right: -40, child: _GlowBlob(color: const Color(0xFF7B5CF0).withOpacity(0.12), size: 200)),
+              Positioned(top: -60, left: -60, child: _GlowBlob(color: _tealDim.withValues(alpha: 0.18), size: 260)),
+              Positioned(top: 160, right: -40, child: _GlowBlob(color: const Color(0xFF7B5CF0).withValues(alpha: 0.12), size: 200)),
               CustomScrollView(
                 controller: _scrollController,
                 slivers: [
@@ -206,7 +206,7 @@ class _QuranChapterScreenState extends State<QuranChapterScreen>
                       padding: const EdgeInsets.fromLTRB(18, 8, 18, 80),
                       sliver: ValueListenableBuilder<double>(
                         valueListenable: ThemeManager().fontSizeDelta,
-                        builder: (context, _, __) {
+                        builder: (context, _, _) {
                           return SliverList(
                             delegate: SliverChildBuilderDelegate(
                               (context, index) {
@@ -288,7 +288,7 @@ class _QuranChapterScreenState extends State<QuranChapterScreen>
             top: -40, left: -40, right: -40,
             child: Container(
               height: 300,
-              decoration: BoxDecoration(gradient: RadialGradient(colors: [_teal.withOpacity(0.12), Colors.transparent], radius: 0.8)),
+              decoration: BoxDecoration(gradient: RadialGradient(colors: [_teal.withValues(alpha: 0.12), Colors.transparent], radius: 0.8)),
             ),
           ),
           Center(
@@ -298,13 +298,13 @@ class _QuranChapterScreenState extends State<QuranChapterScreen>
                 const SizedBox(height: 45),
                 Container(
                   width: 72, height: 72,
-                  decoration: BoxDecoration(color: _teal.withOpacity(0.1), shape: BoxShape.circle, border: Border.all(color: _teal.withOpacity(0.2), width: 1.5)),
+                  decoration: BoxDecoration(color: _teal.withValues(alpha: 0.1), shape: BoxShape.circle, border: Border.all(color: _teal.withValues(alpha: 0.2), width: 1.5)),
                   child: const Center(child: Text('🕌', style: TextStyle(fontSize: 34))),
                 ),
                 const SizedBox(height: 18),
                 Text(widget.chapterName, style: KurdishStyles.getTitleStyle(color: _starlight, fontSize: 24)),
                 const SizedBox(height: 6),
-                Text('سوورەتی ژمارە ${widget.chapterNumber}', style: KurdishStyles.getKurdishStyle(color: _teal.withOpacity(0.7), fontSize: 13)),
+                Text('سوورەتی ژمارە ${widget.chapterNumber}', style: KurdishStyles.getKurdishStyle(color: _teal.withValues(alpha: 0.7), fontSize: 13)),
               ],
             ),
           ),
@@ -327,10 +327,10 @@ class _QuranChapterScreenState extends State<QuranChapterScreen>
             return AnimatedContainer(
               duration: const Duration(milliseconds: 400),
               decoration: BoxDecoration(
-                color: isPlaying ? _teal.withOpacity(0.08) : _midnight,
+                color: isPlaying ? _teal.withValues(alpha: 0.08) : _midnight,
                 borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: isPlaying ? _teal.withOpacity(0.6) : _teal.withOpacity(0.15), width: isPlaying ? 2 : 1),
-                boxShadow: [BoxShadow(color: isPlaying ? _teal.withOpacity(0.15) : _teal.withOpacity(0.06), blurRadius: isPlaying ? 20 : 16, offset: const Offset(0, 4))],
+                border: Border.all(color: isPlaying ? _teal.withValues(alpha: 0.6) : _teal.withValues(alpha: 0.15), width: isPlaying ? 2 : 1),
+                boxShadow: [BoxShadow(color: isPlaying ? _teal.withValues(alpha: 0.15) : _teal.withValues(alpha: 0.06), blurRadius: isPlaying ? 20 : 16, offset: const Offset(0, 4))],
               ),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(20),
@@ -358,7 +358,7 @@ class _QuranChapterScreenState extends State<QuranChapterScreen>
                                 children: [
                                   Container(
                                     width: 32, height: 32,
-                                    decoration: BoxDecoration(color: _nebula, borderRadius: BorderRadius.circular(9), border: Border.all(color: isPlaying ? _teal.withOpacity(0.4) : Colors.white.withOpacity(0.06))),
+                                    decoration: BoxDecoration(color: _nebula, borderRadius: BorderRadius.circular(9), border: Border.all(color: isPlaying ? _teal.withValues(alpha: 0.4) : Colors.white.withValues(alpha: 0.06))),
                                     child: Center(child: Text('${index + 1}', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: isPlaying ? _teal : _moonGlow))),
                                   ),
                                   if (isDownloaded) const Padding(padding: EdgeInsets.only(left: 8.0), child: Icon(Icons.offline_pin_rounded, color: _teal, size: 16)),
@@ -366,14 +366,14 @@ class _QuranChapterScreenState extends State<QuranChapterScreen>
                               ),
                               Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
-                                decoration: BoxDecoration(color: isPlaying ? _teal.withOpacity(0.2) : _teal.withOpacity(0.1), borderRadius: BorderRadius.circular(20), border: Border.all(color: isPlaying ? _teal.withOpacity(0.5) : _teal.withOpacity(0.28))),
+                                decoration: BoxDecoration(color: isPlaying ? _teal.withValues(alpha: 0.2) : _teal.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(20), border: Border.all(color: isPlaying ? _teal.withValues(alpha: 0.5) : _teal.withValues(alpha: 0.28))),
                                 child: Text('ئایەتی ${verse.verse}', style: KurdishStyles.getKurdishStyle(color: _teal, fontSize: 11, fontWeight: FontWeight.bold), textDirection: TextDirection.rtl),
                               ),
                             ],
                           ),
                           Padding(
                             padding: const EdgeInsets.symmetric(vertical: 14),
-                            child: Container(height: 1, decoration: BoxDecoration(gradient: LinearGradient(colors: [Colors.transparent, isPlaying ? _teal.withOpacity(0.4) : _teal.withOpacity(0.18), Colors.transparent]))),
+                            child: Container(height: 1, decoration: BoxDecoration(gradient: LinearGradient(colors: [Colors.transparent, isPlaying ? _teal.withValues(alpha: 0.4) : _teal.withValues(alpha: 0.18), Colors.transparent]))),
                           ),
                           Text(verse.text, textAlign: TextAlign.right, textDirection: TextDirection.rtl, style: KurdishStyles.getArabicStyle(color: isPlaying ? _gold : _starlight, fontSize: isPlaying ? 22 : 20)),
                           const SizedBox(height: 18),
@@ -424,13 +424,13 @@ class _QuranChapterScreenState extends State<QuranChapterScreen>
         onTap: onTap,
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 10),
-          decoration: BoxDecoration(color: isPrimary ? _teal.withOpacity(0.12) : _nebula, borderRadius: BorderRadius.circular(12), border: Border.all(color: isPrimary ? _teal.withOpacity(0.35) : Colors.white.withOpacity(0.06))),
+          decoration: BoxDecoration(color: isPrimary ? _teal.withValues(alpha: 0.12) : _nebula, borderRadius: BorderRadius.circular(12), border: Border.all(color: isPrimary ? _teal.withValues(alpha: 0.35) : Colors.white.withValues(alpha: 0.06))),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(icon, color: color ?? (isPrimary ? _teal : _moonGlow.withOpacity(0.45)), size: 18),
+              Icon(icon, color: color ?? (isPrimary ? _teal : _moonGlow.withValues(alpha: 0.45)), size: 18),
               const SizedBox(height: 4),
-              Text(label, style: KurdishStyles.getKurdishStyle(fontSize: 10, color: color ?? (isPrimary ? _teal : _moonGlow.withOpacity(0.45)))),
+              Text(label, style: KurdishStyles.getKurdishStyle(fontSize: 10, color: color ?? (isPrimary ? _teal : _moonGlow.withValues(alpha: 0.45)))),
             ],
           ),
         ),
@@ -454,7 +454,7 @@ class _StarfieldPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final paint = Paint();
     for (int i = 0; i < _stars.length; i++) {
-      paint.color = Colors.white.withOpacity(math.Random(i * 137).nextDouble() * 0.4 + 0.1);
+      paint.color = Colors.white.withValues(alpha: math.Random(i * 137).nextDouble() * 0.4 + 0.1);
       canvas.drawCircle(Offset(_stars[i].dx * size.width, _stars[i].dy * size.height), math.Random(i * 137).nextDouble() * 1.2 + 0.3, paint);
     }
   }
@@ -469,3 +469,4 @@ class _GlowBlob extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Container(width: size, height: size, decoration: BoxDecoration(shape: BoxShape.circle, gradient: RadialGradient(colors: [color, Colors.transparent])));
 }
+

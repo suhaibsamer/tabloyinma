@@ -167,10 +167,10 @@ class _DailyProgressScreenState extends State<DailyProgressScreen> {
       decoration: BoxDecoration(
         color: _nebula,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: _accent.withOpacity(0.22)),
+        border: Border.all(color: _accent.withValues(alpha: 0.22)),
         boxShadow: [
           BoxShadow(
-            color: _accent.withOpacity(0.08),
+            color: _accent.withValues(alpha: 0.08),
             blurRadius: 18,
             spreadRadius: 1,
           ),
@@ -214,7 +214,7 @@ class _DailyProgressScreenState extends State<DailyProgressScreen> {
           Text(
             '$_totalCompleted لە $_totalPrayers نوێژ ئەنجامدراوە',
             style: TextStyle(
-              color: _moonGlow.withOpacity(0.8),
+              color: _moonGlow.withValues(alpha: 0.8),
               fontSize: 14,
             ),
           ),
@@ -263,7 +263,7 @@ class _DailyProgressScreenState extends State<DailyProgressScreen> {
       decoration: BoxDecoration(
         color: _nebula,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: color.withOpacity(0.22)),
+        border: Border.all(color: color.withValues(alpha: 0.22)),
       ),
       child: Column(
         children: [
@@ -317,8 +317,8 @@ class _DailyProgressScreenState extends State<DailyProgressScreen> {
         borderRadius: BorderRadius.circular(18),
         border: Border.all(
           color: isCompleted
-              ? accentColor.withOpacity(0.45)
-              : Colors.white.withOpacity(0.04),
+              ? accentColor.withValues(alpha: 0.45)
+              : Colors.white.withValues(alpha: 0.04),
         ),
       ),
       child: ListTile(
@@ -327,20 +327,20 @@ class _DailyProgressScreenState extends State<DailyProgressScreen> {
           isCompleted
               ? Icons.check_circle_rounded
               : Icons.radio_button_unchecked_rounded,
-          color: isCompleted ? accentColor : _starlight.withOpacity(0.28),
+          color: isCompleted ? accentColor : _starlight.withValues(alpha: 0.28),
           size: 28,
         ),
         title: Text(
           label,
           textAlign: TextAlign.right,
           style: TextStyle(
-            color: isCompleted ? _starlight : _starlight.withOpacity(0.68),
+            color: isCompleted ? _starlight : _starlight.withValues(alpha: 0.68),
             fontSize: 17,
             fontWeight: isCompleted ? FontWeight.bold : FontWeight.normal,
           ),
         ),
         trailing: icon != null
-            ? Icon(icon, color: accentColor.withOpacity(0.9), size: 22)
+            ? Icon(icon, color: accentColor.withValues(alpha: 0.9), size: 22)
             : null,
         onTap: () => _togglePrayer(key, currentStatus),
       ),
@@ -353,7 +353,7 @@ class _DailyProgressScreenState extends State<DailyProgressScreen> {
       decoration: BoxDecoration(
         color: _nebula,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: _gold.withOpacity(0.2)),
+        border: Border.all(color: _gold.withValues(alpha: 0.2)),
       ),
       child: Column(
         children: [
@@ -376,7 +376,7 @@ class _DailyProgressScreenState extends State<DailyProgressScreen> {
                 border: Border.all(color: _gold, width: 4),
                 boxShadow: [
                   BoxShadow(
-                    color: _gold.withOpacity(0.2),
+                    color: _gold.withValues(alpha: 0.2),
                     blurRadius: 20,
                     spreadRadius: 5,
                   ),
@@ -407,7 +407,7 @@ class _DailyProgressScreenState extends State<DailyProgressScreen> {
           Text(
             'بۆ زیادکردن پەنجە بنێ بە بازنەکەدا',
             style: TextStyle(
-              color: _moonGlow.withOpacity(0.5),
+              color: _moonGlow.withValues(alpha: 0.5),
               fontSize: 12,
             ),
           ),

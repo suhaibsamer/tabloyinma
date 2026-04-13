@@ -6,7 +6,7 @@ import 'package:flutter/foundation.dart';
 
 class AdhanDownloadService {
   static const String _adhanUrl = 'https://drive.google.com/uc?export=download&id=1uoMetc167IyUtwWVXm5tK9HB2u8ycT-J';
-  static const String _fileName = 'custom_adhan.mp3';
+  static const String fileName = 'custom_adhan.mp3';
   static const String _prefKey = 'custom_adhan_path';
 
   static Future<String?> getCustomAdhanPath() async {
@@ -36,7 +36,7 @@ class AdhanDownloadService {
         final appDir = await getApplicationDocumentsDirectory();
         directory = appDir;
       }
-      final String path = '${directory.path}/$_fileName';
+      final String path = '${directory.path}/$fileName';
       
       final dio = Dio();
       await dio.download(
@@ -72,3 +72,4 @@ class AdhanDownloadService {
     await prefs.remove(_prefKey);
   }
 }
+

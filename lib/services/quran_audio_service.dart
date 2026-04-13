@@ -11,16 +11,24 @@ import '../models/quran_verse.dart';
 import 'quran_service.dart';
 
 class QuranAudioService extends BaseAudioHandler with QueueHandler, SeekHandler, ChangeNotifier {
+  static const String _reciterKey = 'quran_audio_reciter_id';
+  static const String _downloadedOnlyKey = 'quran_audio_downloaded_only';
+  static const String _lastKhatmIndexKey = 'quran_audio_last_khatm_index';
+
   static final QuranAudioService _instance = QuranAudioService._internal();
   factory QuranAudioService() => _instance;
   
-  static late QuranAudioService handler;
-  static const String _reciterKey = "selected_reciter";
-  static const String _downloadedOnlyKey = "downloaded_only_mode";
-  static const String _lastKhatmIndexKey = "last_khatm_verse_index";
+  static QuranAudioService? _handler;
+  static QuranAudioService get handler {
+    if (_handler == null) {
+      throw Exception("QuranAudioService not initialized. Call init() first.");
+    }
+    return _handler!;
+  }
 
   static Future<void> init() async {
-    handler = await AudioService.init(
+    if (_handler != null) return;
+    _handler = await AudioService.init(
       builder: () => QuranAudioService._internal(),
       config: const AudioServiceConfig(
         androidNotificationChannelId: 'com.tabloy.iman.quran_audio',
@@ -28,7 +36,7 @@ class QuranAudioService extends BaseAudioHandler with QueueHandler, SeekHandler,
         androidNotificationOngoing: true,
       ),
     );
-    await handler._loadSettings();
+    await _handler!._loadSettings();
   }
 
   QuranAudioService._internal() {
@@ -92,6 +100,8 @@ class QuranAudioService extends BaseAudioHandler with QueueHandler, SeekHandler,
   int _repeatCount = 1; // 1 means play once
   int _currentRepeat = 0;
   Duration _gapDuration = Duration.zero;
+  bool _isSmartGap = false;
+  double _playbackSpeed = 1.0;
   int _rangeStartIdx = -1;
   int _rangeEndIdx = -1;
   bool _isHifzMode = false;
@@ -103,13 +113,18 @@ class QuranAudioService extends BaseAudioHandler with QueueHandler, SeekHandler,
   String get reciterId => _reciterId;
   
   int get repeatCount => _repeatCount;
+  int get currentRepeat => _currentRepeat;
   Duration get gapDuration => _gapDuration;
+  bool get isSmartGap => _isSmartGap;
+  double get playbackSpeed => _playbackSpeed;
   bool get isHifzMode => _isHifzMode;
 
   Future<void> _loadSettings() async {
     final prefs = await SharedPreferences.getInstance();
     _reciterId = prefs.getString(_reciterKey) ?? "Alafasy_128kbps";
     _downloadedOnly = prefs.getBool(_downloadedOnlyKey) ?? false;
+    _playbackSpeed = prefs.getDouble('quran_audio_speed') ?? 1.0;
+    _player.setSpeed(_playbackSpeed);
     notifyListeners();
   }
 
@@ -117,6 +132,14 @@ class QuranAudioService extends BaseAudioHandler with QueueHandler, SeekHandler,
     _downloadedOnly = value;
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_downloadedOnlyKey, value);
+    notifyListeners();
+  }
+
+  Future<void> setPlaybackSpeed(double speed) async {
+    _playbackSpeed = speed;
+    await _player.setSpeed(speed);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setDouble('quran_audio_speed', speed);
     notifyListeners();
   }
 
@@ -138,11 +161,18 @@ class QuranAudioService extends BaseAudioHandler with QueueHandler, SeekHandler,
 
   void setRepeatCount(int count) {
     _repeatCount = count;
+    _currentRepeat = 0;
     notifyListeners();
   }
 
   void setGapDuration(Duration duration) {
     _gapDuration = duration;
+    _isSmartGap = false;
+    notifyListeners();
+  }
+
+  void setSmartGap(bool enabled) {
+    _isSmartGap = enabled;
     notifyListeners();
   }
 
@@ -150,6 +180,16 @@ class QuranAudioService extends BaseAudioHandler with QueueHandler, SeekHandler,
     _rangeStartIdx = start;
     _rangeEndIdx = end;
     notifyListeners();
+  }
+
+  Future<void> playHifzRange(List<QuranVerse> verses, int start, int end) async {
+    _isHifzMode = true;
+    _playlist = verses;
+    _rangeStartIdx = start;
+    _rangeEndIdx = end;
+    _currentIndex = start;
+    _currentRepeat = 0;
+    await _playCurrent();
   }
 
   String _formatUrl(int chapter, int verse) {
@@ -248,34 +288,38 @@ class QuranAudioService extends BaseAudioHandler with QueueHandler, SeekHandler,
 
   void _handleVerseCompletion() async {
     if (_isHifzMode) {
+      final currentAyahDuration = _player.duration ?? Duration.zero;
+      final actualGap = _isSmartGap ? currentAyahDuration : _gapDuration;
+
       _currentRepeat++;
       if (_repeatCount == -1 || _currentRepeat < _repeatCount) {
         // Repeat the same verse
-        if (_gapDuration > Duration.zero) {
-          await Future.delayed(_gapDuration);
+        if (actualGap > Duration.zero) {
+          await Future.delayed(actualGap);
         }
-        await _playCurrent();
+        if (_player.processingState != ProcessingState.idle && _currentVerse != null) {
+          await _playCurrent();
+        }
       } else {
         // Move to next verse in range
         _currentRepeat = 0;
         if (_currentIndex < _rangeEndIdx && _currentIndex + 1 < _playlist.length) {
           _currentIndex++;
-          if (_gapDuration > Duration.zero) {
-            await Future.delayed(_gapDuration);
+          if (actualGap > Duration.zero) {
+            await Future.delayed(actualGap);
           }
-          await _playCurrent();
+          if (_player.processingState != ProcessingState.idle && _currentVerse != null) {
+            await _playCurrent();
+          }
         } else if (_currentIndex == _rangeEndIdx) {
-          // Range finished, maybe loop the entire range? 
-          // For now, let's just stop or loop if repeatCount is set for range?
-          // The requirement says "loop that entire section multiple times".
-          // This logic needs more thought. Let's simplify: 
-          // if we reached end of range, stop or restart range?
-          // Re-starting range for Hifz makes sense.
+          // Range finished, loop the entire range
           _currentIndex = _rangeStartIdx;
-          if (_gapDuration > Duration.zero) {
-            await Future.delayed(_gapDuration);
+          if (actualGap > Duration.zero) {
+            await Future.delayed(actualGap);
           }
-          await _playCurrent();
+          if (_player.processingState != ProcessingState.idle && _currentVerse != null) {
+            await _playCurrent();
+          }
         } else {
           stop();
         }
@@ -378,3 +422,4 @@ class QuranAudioService extends BaseAudioHandler with QueueHandler, SeekHandler,
     super.dispose();
   }
 }
+

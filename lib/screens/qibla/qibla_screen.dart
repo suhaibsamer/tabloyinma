@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_qiblah/flutter_qiblah.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:tabloy_iman/utils/info_utils.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // PALETTE — Modern Minimalist OLED & Emerald Accent
@@ -123,6 +124,15 @@ class _ModernAppBar extends StatelessWidget implements PreferredSizeWidget {
         ),
       ),
       actions: [
+        IconButton(
+          icon: const Icon(Icons.info_outline_rounded, color: _textMain, size: 20),
+          onPressed: () => InfoUtils.showInfo(
+            context,
+            title: 'قیبلە',
+            description: 'دۆزینەوەی ئاراستەی قیبلە بەپێی شوێنی تۆ.',
+            howToUse: 'مۆبایلەکەت بە ڕێکی ڕابگرە، ئامێرەکە ئاراستەی قیبلەت بۆ دیاری دەکات.',
+          ),
+        ),
         Padding(
           padding: const EdgeInsets.only(right: 20),
           child: _PulseDot(),
@@ -187,7 +197,7 @@ class _PulseDotState extends State<_PulseDot>
   @override
   Widget build(BuildContext context) => AnimatedBuilder(
     animation: _ctrl,
-    builder: (_, __) => Transform.scale(
+    builder: (_, _) => Transform.scale(
       scale: _scale.value,
       child: Container(
         width: 10,
@@ -313,7 +323,7 @@ class _StatCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: _card,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: highlight ? _accent.withOpacity(0.3) : _rim),
+          border: Border.all(color: highlight ? _accent.withValues(alpha: 0.3) : _rim),
           boxShadow: highlight
               ? [const BoxShadow(color: _accentGlow, blurRadius: 20, spreadRadius: -5)]
               : [],
@@ -487,7 +497,7 @@ class _HintCard extends StatelessWidget {
   Widget build(BuildContext context) => Container(
     padding: const EdgeInsets.all(16),
     decoration: BoxDecoration(
-      color: _card.withOpacity(0.5),
+      color: _card.withValues(alpha: 0.5),
       borderRadius: BorderRadius.circular(16),
       border: Border.all(color: _rim),
     ),

@@ -5,6 +5,11 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tabloy_iman/models/prayer_times.dart';
 import 'package:tabloy_iman/services/prayer_times_service.dart';
+import 'package:tabloy_iman/utils/info_utils.dart';
+
+import 'package:tabloy_iman/screens/prayer_guide/prayer_guide_screen.dart';
+import 'package:tabloy_iman/screens/prayer_guide/prayer_detail_screen.dart';
+import 'package:tabloy_iman/services/prayer_guide_service.dart';
 
 class PrayerTimesPage extends StatefulWidget {
   const PrayerTimesPage({super.key});
@@ -24,7 +29,6 @@ class _PrayerTimesPageState extends State<PrayerTimesPage>
   late List<Animation<double>> _cardAnimations;
 
   static const _bg = Color(0xFF070B14);
-  static const _bg2 = Color(0xFF0D1324);
   static const _surface = Color(0xFF121A2F);
   static const _surface2 = Color(0xFF18233D);
   static const _textPrimary = Color(0xFFF8F7FC);
@@ -32,7 +36,6 @@ class _PrayerTimesPageState extends State<PrayerTimesPage>
   static const _accent = Color(0xFF7C5CFF);
   static const _accent2 = Color(0xFF46C2FF);
   static const _success = Color(0xFF22C55E);
-  static const _line = Color(0x26FFFFFF);
 
   String _to12Hour(String time24) {
     try {
@@ -147,85 +150,82 @@ class _PrayerTimesPageState extends State<PrayerTimesPage>
   }
 
   List<Map<String, dynamic>> _buildPrayerData(List<String> times) => [
-    {
-      'key': 'fajr',
-      'time': times[0],
-      'icon': '🌅',
-      'color': const Color(0xFFFF7A7A),
-    },
-    {
-      'key': 'sunrise',
-      'time': times[1],
-      'icon': '🌄',
-      'color': const Color(0xFFFFB35C),
-    },
-    {
-      'key': 'dhuhr',
-      'time': times[2],
-      'icon': '☀️',
-      'color': const Color(0xFFFFD76A),
-    },
-    {
-      'key': 'asr',
-      'time': times[3],
-      'icon': '🌤',
-      'color': const Color(0xFF5BC0FF),
-    },
-    {
-      'key': 'maghrib',
-      'time': times[4],
-      'icon': '🌇',
-      'color': const Color(0xFFFF6CA8),
-    },
-    {
-      'key': 'isha',
-      'time': times[5],
-      'icon': '🌙',
-      'color': const Color(0xFF9D7CFF),
-    },
-  ];
+        {
+          'key': 'fajr',
+          'time': times[0],
+          'icon': '🌅',
+          'color': const Color(0xFFFF7A7A),
+        },
+        {
+          'key': 'sunrise',
+          'time': times[1],
+          'icon': '🌄',
+          'color': const Color(0xFFFFB35C),
+        },
+        {
+          'key': 'dhuhr',
+          'time': times[2],
+          'icon': '☀️',
+          'color': const Color(0xFFFFD76A),
+        },
+        {
+          'key': 'asr',
+          'time': times[3],
+          'icon': '🌤',
+          'color': const Color(0xFF5BC0FF),
+        },
+        {
+          'key': 'maghrib',
+          'time': times[4],
+          'icon': '🌇',
+          'color': const Color(0xFFFF6CA8),
+        },
+        {
+          'key': 'isha',
+          'time': times[5],
+          'icon': '🌙',
+          'color': const Color(0xFF9D7CFF),
+        },
+      ];
 
   @override
   Widget build(BuildContext context) {
-    return Directionality(
-      textDirection: TextDirection.rtl,
-      child: Scaffold(
-        backgroundColor: _bg,
-        extendBodyBehindAppBar: true,
-        appBar: _buildAppBar(),
-        body: Stack(
-          children: [
-            const Positioned.fill(child: _ModernBackground()),
-            SafeArea(
-              child: RefreshIndicator(
-                onRefresh: _loadPrayerTimes,
-                color: _accent,
-                backgroundColor: _surface,
-                child: ListView(
-                  physics: const AlwaysScrollableScrollPhysics(),
-                  padding: const EdgeInsets.fromLTRB(16, 10, 16, 24),
-                  children: [
-                    _buildHeroCard(),
-                    const SizedBox(height: 14),
-                    _buildLocationCard(),
-                    const SizedBox(height: 18),
-                    if (_prayerTimes != null)
-                      _NextPrayerCountdownModern(
-                        prayerTimes: _prayerTimes!,
-                        prayerData: _buildPrayerData(_prayerTimes!.times),
-                        nextIndex: _nextPrayerIndex(_prayerTimes!.times),
-                        to12Hour: _to12Hour,
-                      ),
-                    if (_prayerTimes != null) const SizedBox(height: 18),
-                    _buildSectionHeader(),
-                    const SizedBox(height: 12),
-                    _buildBody(),
-                  ],
-                ),
+    return Scaffold(
+      backgroundColor: _bg,
+      extendBodyBehindAppBar: true,
+      appBar: _buildAppBar(),
+      body: Stack(
+        children: [
+          const Positioned.fill(child: _ModernBackground()),
+          SafeArea(
+            child: RefreshIndicator(
+              onRefresh: _loadPrayerTimes,
+              color: _accent,
+              backgroundColor: _surface,
+              child: ListView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsets.fromLTRB(16, 10, 16, 24),
+                children: [
+                  _buildHeroCard(),
+                  const SizedBox(height: 14),
+                  _buildLocationCard(),
+                  const SizedBox(height: 18),
+                  if (_prayerTimes != null)
+                    _NextPrayerCountdownModern(
+                      prayerTimes: _prayerTimes!,
+                      prayerData: _buildPrayerData(_prayerTimes!.times),
+                      nextIndex: _nextPrayerIndex(_prayerTimes!.times),
+                      to12Hour: _to12Hour,
+                    ),
+                  if (_prayerTimes != null) const SizedBox(height: 18),
+                  _buildSectionHeader(),
+                  const SizedBox(height: 12),
+                  _buildBody(),
+                ],
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -247,6 +247,31 @@ class _PrayerTimesPageState extends State<PrayerTimesPage>
       iconTheme: const IconThemeData(color: _textPrimary),
       actions: [
         Padding(
+          padding: const EdgeInsets.only(right: 8),
+          child: GestureDetector(
+            onTap: () => InfoUtils.showInfo(
+              context,
+              title: 'کاتەکانی بانگ',
+              description: 'ئەم بەشە کاتەکانی پێنج فەرزی نوێژ نیشان دەدات بەپێی شوێنی جوگرافی تۆ.',
+              howToUse: 'دەتوانیت کاتەکانی نوێژی ئەمڕۆ ببینی، هەروەها ئاگادارکەرەوە (بانگ) چالاک بکەیت بۆ هەر نوێژێک.',
+            ),
+            child: Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: Colors.white.withValues(alpha: 0.10)),
+              ),
+              child: const Icon(
+                Icons.info_outline_rounded,
+                color: _textPrimary,
+                size: 20,
+              ),
+            ),
+          ),
+        ),
+        Padding(
           padding: const EdgeInsets.only(right: 12),
           child: GestureDetector(
             onTap: _loadPrayerTimes,
@@ -254,9 +279,9 @@ class _PrayerTimesPageState extends State<PrayerTimesPage>
               width: 40,
               height: 40,
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.08),
+                color: Colors.white.withValues(alpha: 0.08),
                 borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: Colors.white.withOpacity(0.10)),
+                border: Border.all(color: Colors.white.withValues(alpha: 0.10)),
               ),
               child: const Icon(
                 Icons.refresh_rounded,
@@ -281,16 +306,16 @@ class _PrayerTimesPageState extends State<PrayerTimesPage>
             borderRadius: BorderRadius.circular(28),
             gradient: LinearGradient(
               colors: [
-                _accent.withOpacity(0.30),
-                _accent2.withOpacity(0.18),
+                _accent.withValues(alpha: 0.30),
+                _accent2.withValues(alpha: 0.18),
               ],
               begin: Alignment.topRight,
               end: Alignment.bottomLeft,
             ),
-            border: Border.all(color: Colors.white.withOpacity(0.10)),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.10)),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.20),
+                color: Colors.black.withValues(alpha: 0.20),
                 blurRadius: 24,
                 offset: const Offset(0, 14),
               ),
@@ -298,7 +323,6 @@ class _PrayerTimesPageState extends State<PrayerTimesPage>
           ),
           child: Row(
             children: [
-
               const SizedBox(width: 14),
               const Expanded(
                 child: Column(
@@ -306,7 +330,6 @@ class _PrayerTimesPageState extends State<PrayerTimesPage>
                   children: [
                     Text(
                       'زانکۆی ڕۆژانەی بانگ',
-                      textAlign: TextAlign.right,
                       style: TextStyle(
                         color: Colors.white70,
                         fontSize: 12,
@@ -316,7 +339,6 @@ class _PrayerTimesPageState extends State<PrayerTimesPage>
                     SizedBox(height: 6),
                     Text(
                       'کاتەکانت بە شێوازێکی نوێ',
-                      textAlign: TextAlign.right,
                       style: TextStyle(
                         color: Colors.white,
                         fontSize: 20,
@@ -326,7 +348,6 @@ class _PrayerTimesPageState extends State<PrayerTimesPage>
                     SizedBox(height: 6),
                     Text(
                       'کاتی بانگ، بانگی داهاتوو، و هەموو زانیارییە پێویستەکان لە دیزاینێکی مۆدێرن',
-                      textAlign: TextAlign.right,
                       style: TextStyle(
                         color: Colors.white70,
                         fontSize: 12,
@@ -342,7 +363,7 @@ class _PrayerTimesPageState extends State<PrayerTimesPage>
                 height: 58,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(18),
-                  color: Colors.white.withOpacity(0.14),
+                  color: Colors.white.withValues(alpha: 0.14),
                 ),
                 child: const Center(
                   child: Icon(
@@ -367,12 +388,12 @@ class _PrayerTimesPageState extends State<PrayerTimesPage>
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: _surface.withOpacity(0.92),
+        color: _surface.withValues(alpha: 0.92),
         borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: Colors.white.withOpacity(0.08)),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.18),
+            color: Colors.black.withValues(alpha: 0.18),
             blurRadius: 18,
             offset: const Offset(0, 10),
           ),
@@ -387,8 +408,8 @@ class _PrayerTimesPageState extends State<PrayerTimesPage>
               borderRadius: BorderRadius.circular(14),
               gradient: LinearGradient(
                 colors: [
-                  _accent.withOpacity(0.95),
-                  _accent2.withOpacity(0.95),
+                  _accent.withValues(alpha: 0.95),
+                  _accent2.withValues(alpha: 0.95),
                 ],
               ),
             ),
@@ -406,7 +427,7 @@ class _PrayerTimesPageState extends State<PrayerTimesPage>
                 Text(
                   'شوێنی هەڵبژێردراو',
                   style: TextStyle(
-                    color: _textSecondary.withOpacity(0.75),
+                    color: _textSecondary.withValues(alpha: 0.75),
                     fontSize: 11,
                     fontWeight: FontWeight.w600,
                   ),
@@ -426,9 +447,9 @@ class _PrayerTimesPageState extends State<PrayerTimesPage>
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
             decoration: BoxDecoration(
-              color: _success.withOpacity(0.10),
+              color: _success.withValues(alpha: 0.10),
               borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: _success.withOpacity(0.30)),
+              border: Border.all(color: _success.withValues(alpha: 0.30)),
             ),
             child: const Row(
               children: [
@@ -475,10 +496,9 @@ class _PrayerTimesPageState extends State<PrayerTimesPage>
         Expanded(
           child: Container(
             height: 1,
-            color: Colors.white.withOpacity(0.08),
+            color: Colors.white.withValues(alpha: 0.08),
           ),
         ),
-
       ],
     );
   }
@@ -492,26 +512,26 @@ class _PrayerTimesPageState extends State<PrayerTimesPage>
   Widget _buildSkeletonList() {
     return AnimatedBuilder(
       animation: _shimmerController,
-      builder: (_, __) {
+      builder: (_, _) {
         return Column(
           children: List.generate(
             6,
-                (i) => Container(
+            (i) => Container(
               margin: const EdgeInsets.only(bottom: 12),
               height: 82,
               decoration: BoxDecoration(
                 color: _surface,
                 borderRadius: BorderRadius.circular(22),
-                border: Border.all(color: Colors.white.withOpacity(0.06)),
+                border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
               ),
               child: ShaderMask(
                 shaderCallback: (bounds) {
                   final v = (_shimmerController.value + i * 0.15) % 1.0;
                   return LinearGradient(
                     colors: [
-                      Colors.white.withOpacity(0.03),
-                      Colors.white.withOpacity(0.08),
-                      Colors.white.withOpacity(0.03),
+                      Colors.white.withValues(alpha: 0.03),
+                      Colors.white.withValues(alpha: 0.08),
+                      Colors.white.withValues(alpha: 0.03),
                     ],
                     stops: [
                       (v - 0.3).clamp(0.0, 1.0),
@@ -561,6 +581,8 @@ class _PrayerTimesPageState extends State<PrayerTimesPage>
             ),
           ),
           child: _buildPrayerTile(
+            context: context,
+            prayerKey: prayer['key'] as String,
             icon: prayer['icon'] as String,
             name: name,
             timePart: timePart,
@@ -574,6 +596,8 @@ class _PrayerTimesPageState extends State<PrayerTimesPage>
   }
 
   Widget _buildPrayerTile({
+    required BuildContext context,
+    required String prayerKey,
     required String icon,
     required String name,
     required String timePart,
@@ -581,6 +605,9 @@ class _PrayerTimesPageState extends State<PrayerTimesPage>
     required Color color,
     required bool isNext,
   }) {
+    final isFriday = DateTime.now().weekday == DateTime.friday;
+    final isDhuhr = prayerKey == 'dhuhr';
+
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(14),
@@ -589,123 +616,181 @@ class _PrayerTimesPageState extends State<PrayerTimesPage>
         gradient: LinearGradient(
           colors: isNext
               ? [
-            color.withOpacity(0.14),
-            _surface2.withOpacity(0.94),
-          ]
+                  color.withValues(alpha: 0.14),
+                  _surface2.withValues(alpha: 0.94),
+                ]
               : [
-            _surface.withOpacity(0.94),
-            _surface2.withOpacity(0.88),
-          ],
+                  _surface.withValues(alpha: 0.94),
+                  _surface2.withValues(alpha: 0.88),
+                ],
           begin: Alignment.topRight,
           end: Alignment.bottomLeft,
         ),
         border: Border.all(
-          color: isNext ? color.withOpacity(0.45) : Colors.white.withOpacity(0.08),
+          color: isNext
+              ? color.withValues(alpha: 0.45)
+              : Colors.white.withValues(alpha: 0.08),
           width: isNext ? 1.4 : 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.16),
+            color: Colors.black.withValues(alpha: 0.16),
             blurRadius: 18,
             offset: const Offset(0, 10),
           ),
         ],
       ),
-      child: Row(
+      child: Column(
         children: [
-          Container(
-            width: 52,
-            height: 52,
-            decoration: BoxDecoration(
-              color: isNext ? color.withOpacity(0.15) : Colors.white.withOpacity(0.04),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: isNext ? color.withOpacity(0.30) : Colors.white.withOpacity(0.08),
+          Row(
+            children: [
+              Container(
+                width: 52,
+                height: 52,
+                decoration: BoxDecoration(
+                  color: isNext
+                      ? color.withValues(alpha: 0.15)
+                      : Colors.white.withValues(alpha: 0.04),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: isNext
+                        ? color.withValues(alpha: 0.30)
+                        : Colors.white.withValues(alpha: 0.08),
+                  ),
+                ),
+                child: Center(
+                  child: Text(
+                    icon,
+                    style: const TextStyle(fontSize: 24),
+                  ),
+                ),
               ),
-            ),
-            child: Center(
-              child: Text(
-                icon,
-                style: const TextStyle(fontSize: 24),
-              ),
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-
-                    Text(
-                      name,
-                      style: TextStyle(
-                        color: isNext ? _textPrimary : _textSecondary,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                    const Spacer(),
-                    if (isNext)
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 5,
-                      ),
-                      decoration: BoxDecoration(
-                        color: color.withOpacity(0.13),
-                        borderRadius: BorderRadius.circular(30),
-                        border: Border.all(color: color.withOpacity(0.35)),
-                      ),
-                      child: Text(
-                        'داهاتوو',
-                        style: TextStyle(
-                          color: color,
-                          fontSize: 10,
-                          fontWeight: FontWeight.w800,
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          name,
+                          style: TextStyle(
+                            color: isNext ? _textPrimary : _textSecondary,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w800,
+                          ),
                         ),
+                        const Spacer(),
+                        if (isNext)
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 5,
+                            ),
+                            decoration: BoxDecoration(
+                              color: color.withValues(alpha: 0.13),
+                              borderRadius: BorderRadius.circular(30),
+                              border:
+                                  Border.all(color: color.withValues(alpha: 0.35)),
+                            ),
+                            child: Text(
+                              'داهاتوو',
+                              style: TextStyle(
+                                color: color,
+                                fontSize: 10,
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      isNext ? 'ئەو بانگەی دواتر دەبێت' : 'کاتی تۆمارکراو',
+                      style: TextStyle(
+                        color: _textSecondary.withValues(alpha: 0.75),
+                        fontSize: 11,
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 8),
-                Text(
-                  isNext ? 'ئەو بانگەی دواتر دەبێت' : 'کاتی تۆمارکراو',
-                  style: TextStyle(
-                    color: _textSecondary.withOpacity(0.75),
-                    fontSize: 11,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 12),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                timePart,
-                style: TextStyle(
-                  color: isNext ? _textPrimary : _textPrimary.withOpacity(0.92),
-                  fontSize: 22,
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: 0.3,
-                ),
               ),
-              if (periodPart.isNotEmpty)
-                Text(
-                  periodPart,
-                  style: TextStyle(
-                    color: isNext ? color : _textSecondary.withOpacity(0.7),
-                    fontSize: 10,
-                    fontWeight: FontWeight.w700,
+              const SizedBox(width: 12),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    timePart,
+                    style: TextStyle(
+                      color: isNext
+                          ? _textPrimary
+                          : _textPrimary.withValues(alpha: 0.92),
+                      fontSize: 22,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 0.3,
+                    ),
                   ),
-                ),
+                  if (periodPart.isNotEmpty)
+                    Text(
+                      periodPart,
+                      style: TextStyle(
+                        color:
+                            isNext ? color : _textSecondary.withValues(alpha: 0.7),
+                        fontSize: 10,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                ],
+              ),
             ],
           ),
+          if (isFriday && isDhuhr) ...[
+            const SizedBox(height: 12),
+            const Divider(color: Colors.white10, height: 1),
+            const SizedBox(height: 12),
+            GestureDetector(
+              onTap: () async {
+                await PrayerGuideService().init();
+                final jumuah = PrayerGuideService().getPrayerById('jumuah');
+                if (jumuah != null && context.mounted) {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => PrayerDetailScreen(prayer: jumuah),
+                    ),
+                  );
+                }
+              },
+              child: Container(
+                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: color.withValues(alpha: 0.2)),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  textDirection: TextDirection.rtl,
+                  children: [
+                    Icon(Icons.auto_stories_rounded, color: color, size: 16),
+                    const SizedBox(width: 8),
+                    Text(
+                      'چۆنێتی ئەنجامدانی نوێژی هەینی',
+                      style: TextStyle(
+                        color: color,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const Spacer(),
+                    Icon(Icons.chevron_left_rounded, color: color, size: 16),
+                  ],
+                ),
+              ),
+            ),
+          ],
         ],
       ),
     );
@@ -716,16 +801,16 @@ class _PrayerTimesPageState extends State<PrayerTimesPage>
       height: 260,
       alignment: Alignment.center,
       decoration: BoxDecoration(
-        color: _surface.withOpacity(0.92),
+        color: _surface.withValues(alpha: 0.92),
         borderRadius: BorderRadius.circular(26),
-        border: Border.all(color: Colors.white.withOpacity(0.08)),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(
             Icons.cloud_off_rounded,
-            color: _textSecondary.withOpacity(0.4),
+            color: _textSecondary.withValues(alpha: 0.4),
             size: 46,
           ),
           const SizedBox(height: 14),
@@ -782,7 +867,8 @@ class _NextPrayerCountdownModern extends StatefulWidget {
       _NextPrayerCountdownModernState();
 }
 
-class _NextPrayerCountdownModernState extends State<_NextPrayerCountdownModern> {
+class _NextPrayerCountdownModernState
+    extends State<_NextPrayerCountdownModern> {
   late Timer _timer;
   Duration _remaining = Duration.zero;
   double _progress = 0.0;
@@ -826,7 +912,8 @@ class _NextPrayerCountdownModernState extends State<_NextPrayerCountdownModern> 
     int diff = nextSec - nowSec;
     if (diff <= 0) diff += 86400;
 
-    final prevIdx = (ni - 1 + widget.prayerData.length) % widget.prayerData.length;
+    final prevIdx =
+        (ni - 1 + widget.prayerData.length) % widget.prayerData.length;
     int prevSec = _toSec(widget.prayerData[prevIdx]['time'] as String);
     int span = nextSec - prevSec;
     if (span <= 0) span += 86400;
@@ -859,17 +946,17 @@ class _NextPrayerCountdownModernState extends State<_NextPrayerCountdownModern> 
         borderRadius: BorderRadius.circular(26),
         gradient: LinearGradient(
           colors: [
-            color.withOpacity(0.16),
-            _surface2.withOpacity(0.92),
-            _surface.withOpacity(0.92),
+            color.withValues(alpha: 0.16),
+            _surface2.withValues(alpha: 0.92),
+            _surface.withValues(alpha: 0.92),
           ],
           begin: Alignment.topRight,
           end: Alignment.bottomLeft,
         ),
-        border: Border.all(color: color.withOpacity(0.35), width: 1.3),
+        border: Border.all(color: color.withValues(alpha: 0.35), width: 1.3),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.18),
+            color: Colors.black.withValues(alpha: 0.18),
             blurRadius: 20,
             offset: const Offset(0, 12),
           ),
@@ -884,9 +971,9 @@ class _NextPrayerCountdownModernState extends State<_NextPrayerCountdownModern> 
                 width: 48,
                 height: 48,
                 decoration: BoxDecoration(
-                  color: color.withOpacity(0.14),
+                  color: color.withValues(alpha: 0.14),
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: color.withOpacity(0.35)),
+                  border: Border.all(color: color.withValues(alpha: 0.35)),
                 ),
                 child: Center(
                   child: Text(
@@ -903,7 +990,7 @@ class _NextPrayerCountdownModernState extends State<_NextPrayerCountdownModern> 
                     Text(
                       'بانگی داهاتوو',
                       style: TextStyle(
-                        color: _textSecondary.withOpacity(0.8),
+                        color: _textSecondary.withValues(alpha: 0.8),
                         fontSize: 11,
                         fontWeight: FontWeight.w600,
                       ),
@@ -926,7 +1013,7 @@ class _NextPrayerCountdownModernState extends State<_NextPrayerCountdownModern> 
                   Text(
                     'کاتی بانگ',
                     style: TextStyle(
-                      color: _textSecondary.withOpacity(0.8),
+                      color: _textSecondary.withValues(alpha: 0.8),
                       fontSize: 11,
                       fontWeight: FontWeight.w600,
                     ),
@@ -961,8 +1048,9 @@ class _NextPrayerCountdownModernState extends State<_NextPrayerCountdownModern> 
             child: LinearProgressIndicator(
               value: _progress,
               minHeight: 6,
-              backgroundColor: Colors.white.withOpacity(0.06),
-              valueColor: AlwaysStoppedAnimation<Color>(color.withOpacity(0.8)),
+              backgroundColor: Colors.white.withValues(alpha: 0.06),
+              valueColor:
+                  AlwaysStoppedAnimation<Color>(color.withValues(alpha: 0.8)),
             ),
           ),
         ],
@@ -990,9 +1078,9 @@ class _TimeBox extends StatelessWidget {
           width: 72,
           padding: const EdgeInsets.symmetric(vertical: 12),
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.05),
+            color: Colors.white.withValues(alpha: 0.05),
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: Colors.white.withOpacity(0.08)),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
           ),
           child: Center(
             child: Text(
@@ -1009,7 +1097,7 @@ class _TimeBox extends StatelessWidget {
         Text(
           label,
           style: TextStyle(
-            color: Colors.white.withOpacity(0.55),
+            color: Colors.white.withValues(alpha: 0.55),
             fontSize: 10,
             fontWeight: FontWeight.w600,
           ),
@@ -1030,7 +1118,7 @@ class _TimeSep extends StatelessWidget {
       child: Text(
         ':',
         style: TextStyle(
-          color: color.withOpacity(0.65),
+          color: color.withValues(alpha: 0.65),
           fontSize: 22,
           fontWeight: FontWeight.w900,
         ),
@@ -1063,7 +1151,7 @@ class _ModernBackground extends StatelessWidget {
           top: -80,
           right: -40,
           child: _GlowBlob(
-            color: const Color(0xFF7C5CFF).withOpacity(0.18),
+            color: const Color(0xFF7C5CFF).withValues(alpha: 0.18),
             size: 220,
           ),
         ),
@@ -1071,7 +1159,7 @@ class _ModernBackground extends StatelessWidget {
           top: 120,
           left: -50,
           child: _GlowBlob(
-            color: const Color(0xFF46C2FF).withOpacity(0.14),
+            color: const Color(0xFF46C2FF).withValues(alpha: 0.14),
             size: 200,
           ),
         ),
@@ -1105,7 +1193,7 @@ class _StarfieldPainter extends CustomPainter {
       final rng = math.Random(i * 137);
       final radius = rng.nextDouble() * 1.3 + 0.3;
       final opacity = rng.nextDouble() * 0.45 + 0.08;
-      paint.color = Colors.white.withOpacity(opacity);
+      paint.color = Colors.white.withValues(alpha: opacity);
 
       canvas.drawCircle(
         Offset(_stars[i].dx * size.width, _stars[i].dy * size.height),

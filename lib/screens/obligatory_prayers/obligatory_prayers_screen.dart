@@ -80,7 +80,7 @@ class ObligatoryPrayersScreen extends StatelessWidget {
             Expanded(
               child: ValueListenableBuilder<double>(
                 valueListenable: ThemeManager().fontSizeDelta,
-                builder: (context, _, __) {
+                builder: (context, _, _) {
                   return ListView.builder(
                     padding: const EdgeInsets.all(20),
                     itemCount: _prayers.length,
@@ -104,7 +104,7 @@ class ObligatoryPrayersScreen extends StatelessWidget {
       decoration: BoxDecoration(
         color: _nebula,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: _accent.withOpacity(0.1)),
+        border: Border.all(color: _accent.withValues(alpha: 0.1)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.end,
@@ -120,7 +120,7 @@ class ObligatoryPrayersScreen extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
-                  color: _accent.withOpacity(0.1),
+                  color: _accent.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
@@ -147,13 +147,13 @@ class ObligatoryPrayersScreen extends StatelessWidget {
       children: [
         Text(
           label,
-          style: KurdishStyles.getKurdishStyle(fontSize: 14, color: _gold.withOpacity(0.8), fontWeight: FontWeight.bold),
+          style: KurdishStyles.getKurdishStyle(fontSize: 14, color: _gold.withValues(alpha: 0.8), fontWeight: FontWeight.bold),
           textDirection: TextDirection.rtl,
         ),
         const SizedBox(height: 4),
         Text(
           value,
-          style: KurdishStyles.getKurdishStyle(fontSize: 14, color: _moonGlow.withOpacity(0.7)),
+          style: KurdishStyles.getKurdishStyle(fontSize: 14, color: _moonGlow.withValues(alpha: 0.7)),
           textAlign: TextAlign.right,
           textDirection: TextDirection.rtl,
         ),
@@ -175,3 +175,4 @@ class FardPrayer {
     required this.description,
   });
 }
+

@@ -72,3 +72,4 @@ class ZakatService {
     await _firestore.collection('zakat_thresholds').doc(id).delete();
   }
 }
+

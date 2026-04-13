@@ -2,6 +2,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/foundation.dart';
 import 'notification_service.dart';
 import 'quran_audio_service.dart';
+import 'adhan_download_service.dart';
 
 class AudioPreferencesService extends ChangeNotifier {
   static final AudioPreferencesService _instance = AudioPreferencesService._internal();
@@ -22,6 +23,7 @@ class AudioPreferencesService extends ChangeNotifier {
     {'id': 'makkah', 'name': 'Makkah', 'file': 'adhan_makkah'},
     {'id': 'madinah', 'name': 'Madinah', 'file': 'adhan_madinah'},
     {'id': 'alaqsa', 'name': 'Al-Aqsa', 'file': 'adhan_alaqsa'},
+    {'id': 'custom', 'name': 'بانگی دەستکاریکراو', 'file': AdhanDownloadService.fileName},
   ];
 
   Future<void> init() async {
@@ -53,3 +55,4 @@ class AudioPreferencesService extends ChangeNotifier {
     notifyListeners();
   }
 }
+

@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:tabloy_iman/widgets/pray_dialog.dart';
+import 'package:tabloy_iman/utils/info_utils.dart';
 
 // screens
 import 'package:tabloy_iman/screens/prayer_times/prayer_times_page.dart';
@@ -23,6 +24,10 @@ import '../../chwnasaraw/chwnasaraw_screen.dart';
 import '../../progress/daily_progress_screen.dart';
 import '../../quran/hafiz_quran_screen.dart';
 import '../../quran/quran_completion_screen.dart';
+import '../../quran/quran_teacher_screen.dart';
+import 'package:tabloy_iman/screens/prayer_guide/prayer_guide_screen.dart';
+import 'package:tabloy_iman/services/prayer_service.dart';
+import 'package:tabloy_iman/models/prayer_request.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -44,11 +49,11 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
 
   static const _text = Color(0xFFF8FAFC);
   static const _muted = Color(0xFF94A3B8);
-  static const _faint = Color(0xFF64748B);
 
   static const _primary = Color(0xFF8B5CF6);
   static const _primary2 = Color(0xFF6D28D9);
   static const _blue = Color(0xFF38BDF8);
+  static const _gold = Color(0xFFD4A853);
 
   _ZikrPeriod get _currentZikrPeriod {
     final h = DateTime.now().hour;
@@ -98,6 +103,8 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
 
   final List<_ScreenItem> _featured = [];
   final List<_ScreenItem> _all = [];
+  PrayerRequest? _randomPrayer;
+  final PrayerService _prayerService = PrayerService();
 
   late final List<_ScreenItem> _screens = [
     _ScreenItem(
@@ -116,6 +123,14 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
       screen: const QuranHomeScreen(),
       isFeatured: true,
     ),
+    // _ScreenItem(
+    //   title: 'ڕێبەری نوێژ',
+    //   icon: Icons.menu_book_outlined,
+    //   color: const Color(0xFFFACC15),
+    //   gradB: const Color(0xFFEAB308),
+    //   screen: const PrayerGuideScreen(),
+    //   isFeatured: true,
+    // ),
     _ScreenItem(
       title: 'خەتمی قورئان',
       icon: Icons.auto_stories_rounded,
@@ -125,12 +140,19 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
       isFeatured: true,
     ),
     _ScreenItem(
+      title: 'مامۆستای قورئان',
+      icon: Icons.school_rounded,
+      color: const Color(0xFF2DD4BF),
+      gradB: const Color(0xFF0F766E),
+      screen: const QuranTeacherScreen(),
+      isFeatured: true,
+    ),
+    _ScreenItem(
       title: 'تەسبیح',
       icon: Icons.fingerprint_rounded,
       color: const Color(0xFF2DD4BF),
       gradB: const Color(0xFF0F766E),
       screen: const TazbihScreen(),
-      isFeatured: true,
     ),
     _ScreenItem(
       title: 'قیبلە',
@@ -174,27 +196,27 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
       gradB: const Color(0xFF475569),
       screen: const AtahyatScreen(),
     ),
-    _ScreenItem(
-      title: 'نوێژە فەرزەکان',
-      icon: Icons.check_circle_rounded,
-      color: const Color(0xFF60A5FA),
-      gradB: const Color(0xFF2563EB),
-      screen: const ObligatoryPrayersScreen(),
-    ),
-    _ScreenItem(
-      title: 'نوێژە سوننەتەکان',
-      icon: Icons.star_rounded,
-      color: const Color(0xFFFDE047),
-      gradB: const Color(0xFFCA8A04),
-      screen: const SunnahPrayersScreen(),
-    ),
-    _ScreenItem(
-      title: 'ئادابەکان',
-      icon: Icons.clean_hands_rounded,
-      color: const Color(0xFF86EFAC),
-      gradB: const Color(0xFF15803D),
-      screen: const ChwnaSarAwScreen(),
-    ),
+    // _ScreenItem(
+    //   title: 'نوێژە فەرزەکان',
+    //   icon: Icons.check_circle_rounded,
+    //   color: const Color(0xFF60A5FA),
+    //   gradB: const Color(0xFF2563EB),
+    //   screen: const ObligatoryPrayersScreen(),
+    // ),
+    // _ScreenItem(
+    //   title: 'نوێژە سوننەتەکان',
+    //   icon: Icons.star_rounded,
+    //   color: const Color(0xFFFDE047),
+    //   gradB: const Color(0xFFCA8A04),
+    //   screen: const SunnahPrayersScreen(),
+    // ),
+    // _ScreenItem(
+    //   title: 'ئادابەکان',
+    //   icon: Icons.clean_hands_rounded,
+    //   color: const Color(0xFF86EFAC),
+    //   gradB: const Color(0xFF15803D),
+    //   screen: const ChwnaSarAwScreen(),
+    // ),
     _ScreenItem(
       title: 'فەرهەنگی ناوەکان',
       icon: Icons.book_rounded,
@@ -253,6 +275,14 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       PrayDialog.show(context);
     });
+    _loadRandomPrayer();
+  }
+
+  Future<void> _loadRandomPrayer() async {
+    final prayer = await _prayerService.getRandomPrayerRequest();
+    if (mounted) {
+      setState(() => _randomPrayer = prayer);
+    }
   }
 
   @override
@@ -265,43 +295,40 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    return Directionality(
-      textDirection: TextDirection.rtl,
-      child: Scaffold(
-        backgroundColor: _bg,
-        extendBodyBehindAppBar: true,
-        appBar: _buildAppBar(context),
-        body: Stack(
-          children: [
-            _buildBackgroundGlow(),
-            SafeArea(
-              child: SingleChildScrollView(
-                physics: const BouncingScrollPhysics(),
-                padding: const EdgeInsets.fromLTRB(5, 10, 5, 30),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    _buildHeroCard(),
-                    const SizedBox(height: 16),
-                    _buildQuickActions(),
-                    const SizedBox(height: 18),
-                    _buildSocialCarousel(),
-                    const SizedBox(height: 18),
-                    _buildZikrTimeCard(),
-                    const SizedBox(height: 12),
-                    _buildSectionTitle('بەرنامە گرنگەکان'),
-                    const SizedBox(height: 12),
-                    _buildFeaturedGrid(),
-                    const SizedBox(height: 26),
-                    _buildSectionTitle('هەموو بەرنامەکان'),
-                    const SizedBox(height: 12),
-                    _buildAllList(),
-                  ],
-                ),
+    return Scaffold(
+      backgroundColor: _bg,
+      extendBodyBehindAppBar: true,
+      appBar: _buildAppBar(context),
+      body: Stack(
+        children: [
+          _buildBackgroundGlow(),
+          SafeArea(
+            child: SingleChildScrollView(
+              physics: const BouncingScrollPhysics(),
+              padding: const EdgeInsets.fromLTRB(5, 10, 5, 30),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  _buildHeroCard(),
+                  const SizedBox(height: 16),
+                  _buildQuickActions(),
+                  const SizedBox(height: 18),
+                  _buildSocialCarousel(),
+                  const SizedBox(height: 18),
+                  _buildZikrTimeCard(),
+                  const SizedBox(height: 12),
+                  _buildSectionTitle('بەرنامە گرنگەکان'),
+                  const SizedBox(height: 12),
+                  _buildFeaturedGrid(),
+                  const SizedBox(height: 26),
+                  _buildSectionTitle('هەموو بەرنامەکان'),
+                  const SizedBox(height: 12),
+                  _buildAllList(),
+                ],
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -332,6 +359,20 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
       ),
       actions: [
         Padding(
+          padding: const EdgeInsets.only(left: 4),
+          child: _SquareIconButton(
+            icon: Icons.info_outline_rounded,
+            color:
+            _gold,
+            onTap: () => InfoUtils.showInfo(
+              context,
+              title: 'تابلۆی ئیمان',
+              description: 'ئەم ئەپڵیکەیشنە پێکدێت لە کۆمەڵێک بەشی جیاواز بۆ خزمەتکردنی موسڵمانان لە ژیانی ڕۆژانەیاندا.',
+              howToUse: 'دەتوانیت لە ڕێگەی لیستەکەوە بچیتە ناو هەر بەشێک کە دەتەوێت و سوود لە زانیارییەکان وەربگریت.',
+            ),
+          ),
+        ),
+        Padding(
           padding: const EdgeInsets.only(left: 12),
           child: _SquareIconButton(
             icon: Icons.settings_rounded,
@@ -357,7 +398,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
             height: 240,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: _primary.withOpacity(0.18),
+              color: _primary.withValues(alpha: 0.18),
             ),
           ),
         ),
@@ -369,7 +410,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
             height: 180,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: _blue.withOpacity(0.10),
+              color: _blue.withValues(alpha: 0.10),
             ),
           ),
         ),
@@ -388,7 +429,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
       padding: const EdgeInsets.all(22),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(30),
-        border: Border.all(color: Colors.white.withOpacity(0.18)),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.18)),
         gradient: const LinearGradient(
           colors: [_primary, _primary2],
           begin: Alignment.topRight,
@@ -396,7 +437,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
         ),
         boxShadow: [
           BoxShadow(
-            color: _primary.withOpacity(0.25),
+            color: _primary.withValues(alpha: 0.25),
             blurRadius: 28,
             offset: const Offset(0, 12),
           ),
@@ -452,9 +493,9 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
             width: 64,
             height: 64,
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.14),
+              color: Colors.white.withValues(alpha: 0.14),
               borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: Colors.white.withOpacity(0.18)),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.18)),
             ),
             child: const Center(
               child: Text('☪️', style: TextStyle(fontSize: 30)),
@@ -493,47 +534,44 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
       ),
     ];
 
-    return Directionality(
-      textDirection: TextDirection.rtl,
-      child: Row(
-        children: items.map((item) {
-          return Expanded(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 4),
-              child: InkWell(
-                borderRadius: BorderRadius.circular(18),
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => item.$3),
+    return Row(
+      children: items.map((item) {
+        return Expanded(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            child: InkWell(
+              borderRadius: BorderRadius.circular(18),
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => item.$3),
+              ),
+              child: Ink(
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                decoration: BoxDecoration(
+                  color: _surface,
+                  borderRadius: BorderRadius.circular(18),
+                  border: Border.all(color: _border),
                 ),
-                child: Ink(
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  decoration: BoxDecoration(
-                    color: _surface,
-                    borderRadius: BorderRadius.circular(18),
-                    border: Border.all(color: _border),
-                  ),
-                  child: Column(
-                    children: [
-                      Icon(item.$2, color: item.$4, size: 22),
-                      const SizedBox(height: 8),
-                      Text(
-                        item.$1,
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                          color: _text,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w700,
-                        ),
+                child: Column(
+                  children: [
+                    Icon(item.$2, color: item.$4, size: 22),
+                    const SizedBox(height: 8),
+                    Text(
+                      item.$1,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        color: _text,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
             ),
-          );
-        }).toList(),
-      ),
+          ),
+        );
+      }).toList(),
     );
   }
 
@@ -565,7 +603,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
               decoration: BoxDecoration(
                 color: active
                     ? _socialItems[i].color
-                    : Colors.white.withOpacity(0.18),
+                    : Colors.white.withValues(alpha: 0.18),
                 borderRadius: BorderRadius.circular(999),
               ),
             );
@@ -583,7 +621,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
       decoration: BoxDecoration(
         color: _surface,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: period.color.withOpacity(0.2)),
+        border: Border.all(color: period.color.withValues(alpha: 0.2)),
       ),
       child: InkWell(
         borderRadius: BorderRadius.circular(24),
@@ -600,7 +638,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                 width: 52,
                 height: 52,
                 decoration: BoxDecoration(
-                  color: period.color.withOpacity(0.1),
+                  color: period.color.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(16),
                 ),
                 child: Center(
@@ -638,7 +676,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: period.color.withOpacity(0.1),
+                  color: period.color.withValues(alpha: 0.1),
                 ),
                 child: Icon(Icons.chevron_right_rounded, color: period.color, size: 20),
               ),
@@ -707,16 +745,24 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   }
 
   Widget _buildAllList() {
-    return ListView.separated(
-      itemCount: _all.length,
+    return ListView.builder(
+      itemCount: _all.length + (_all.length ~/ 10),
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      separatorBuilder: (_, __) => const SizedBox(height: 10),
       itemBuilder: (_, i) {
-        final globalIndex = _featured.length + i;
+        if (i > 0 && i % 11 == 10) {
+          if (_randomPrayer == null) return const SizedBox.shrink();
+          return _buildMiniDuaCard(_randomPrayer!);
+        }
+
+        final index = i - (i ~/ 11);
+        if (index >= _all.length) return const SizedBox.shrink();
+
+        final globalIndex = _featured.length + index;
         final anim = globalIndex < _itemAnimations.length
             ? _itemAnimations[globalIndex]
             : const AlwaysStoppedAnimation<double>(1);
+
         return AnimatedBuilder(
           animation: anim,
           builder: (_, child) => Transform.translate(
@@ -724,14 +770,115 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
             child: Opacity(opacity: anim.value, child: child),
           ),
           child: _ListCard(
-            item: _all[i],
+            item: _all[index],
             onTap: () => Navigator.push(
               context,
-              MaterialPageRoute(builder: (_) => _all[i].screen),
+              MaterialPageRoute(builder: (_) => _all[index].screen),
             ),
           ),
         );
       },
+    );
+  }
+
+  Widget _buildMiniDuaCard(PrayerRequest prayer) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 20, top: 10),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: _surface,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: _gold.withValues(alpha: 0.2)),
+        boxShadow: [
+          BoxShadow(
+            color: _gold.withValues(alpha: 0.05),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          Row(
+            textDirection: TextDirection.rtl,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: _gold.withValues(alpha: 0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.favorite, color: _gold, size: 16),
+              ),
+              const SizedBox(width: 12),
+              const Text(
+                'دوعایەکی کورت لە دیواری دوعا',
+                style: TextStyle(
+                  color: _gold,
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const Spacer(),
+              Text(
+                prayer.userName,
+                style: const TextStyle(color: _muted, fontSize: 11),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Text(
+            prayer.content,
+            textAlign: TextAlign.center,
+            textDirection: TextDirection.rtl,
+            style: const TextStyle(
+              color: _text,
+              fontSize: 15,
+              height: 1.6,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          const SizedBox(height: 20),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              ElevatedButton.icon(
+                onPressed: () {
+                  _prayerService.incrementAmen(prayer.id);
+                  _showAmenSuccess();
+                },
+                icon: const Icon(Icons.front_hand, size: 16),
+                label: const Text('اللهم آمین'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: _gold.withValues(alpha: 0.1),
+                  foregroundColor: _gold,
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    side: BorderSide(color: _gold.withValues(alpha: 0.3)),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showAmenSuccess() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Text(
+          'خوای گەورە قبوڵی بکات',
+          textAlign: TextAlign.center,
+          style: TextStyle(fontFamily: 'KurdishFont'),
+        ),
+        backgroundColor: _gold,
+        behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 2),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
     );
   }
 }
@@ -758,7 +905,7 @@ class _SquareIconButton extends StatelessWidget {
         decoration: BoxDecoration(
           color: _HomePageState._surface,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: color.withOpacity(0.30)),
+          border: Border.all(color: color.withValues(alpha: 0.30)),
         ),
         child: Icon(icon, color: color, size: 20),
       ),
@@ -779,11 +926,16 @@ class _SocialBannerCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: _HomePageState._surface,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: item.color.withOpacity(0.15)),
+        border: Border.all(color: item.color.withValues(alpha: 0.15)),
       ),
       child: InkWell(
         borderRadius: BorderRadius.circular(20),
-        onTap: () async { /* URL Launch Logic */ },
+        onTap: () async {
+          final uri = Uri.parse(item.url);
+          if (await canLaunchUrl(uri)) {
+            await launchUrl(uri, mode: LaunchMode.externalApplication);
+          }
+        },
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Row(
@@ -794,7 +946,7 @@ class _SocialBannerCard extends StatelessWidget {
                 width: 48,
                 height: 48,
                 decoration: BoxDecoration(
-                  color: item.color.withOpacity(0.1),
+                  color: item.color.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(14),
                 ),
                 child: Center(
@@ -826,7 +978,7 @@ class _SocialBannerCard extends StatelessWidget {
                 ),
               ),
               Icon(Icons.open_in_new_rounded,
-                  color: item.color.withOpacity(0.4), size: 24),
+                  color: item.color.withValues(alpha: 0.4), size: 24),
             ],
           ),
         ),
@@ -854,10 +1006,10 @@ class _FeaturedCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: _HomePageState._surface,
           borderRadius: BorderRadius.circular(24),
-          border: Border.all(color: item.color.withOpacity(0.15), width: 1),
+          border: Border.all(color: item.color.withValues(alpha: 0.15), width: 1),
           boxShadow: [
             BoxShadow(
-              color: item.color.withOpacity(0.08),
+              color: item.color.withValues(alpha: 0.08),
               blurRadius: 20,
               offset: const Offset(0, 10),
             ),
@@ -880,8 +1032,8 @@ class _FeaturedCard extends StatelessWidget {
                       borderRadius: BorderRadius.circular(30),
                       gradient: LinearGradient(
                         colors: [
-                          item.color.withOpacity(0.12),
-                          item.color.withOpacity(0.01),
+                          item.color.withValues(alpha: 0.12),
+                          item.color.withValues(alpha: 0.01),
                         ],
                       ),
                     ),
@@ -904,7 +1056,7 @@ class _FeaturedCard extends StatelessWidget {
                           height: 48,
                           width: 48,
                           decoration: BoxDecoration(
-                            color: item.color.withOpacity(0.1),
+                            color: item.color.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(14),
                           ),
                           child: Icon(item.icon, color: item.color, size: 24),
@@ -912,7 +1064,7 @@ class _FeaturedCard extends StatelessWidget {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                           decoration: BoxDecoration(
-                            color: item.color.withOpacity(0.05),
+                            color: item.color.withValues(alpha: 0.05),
                             borderRadius: BorderRadius.circular(20),
                           ),
                           child: Icon(Icons.arrow_forward_ios, size: 10, color: item.color),
@@ -949,7 +1101,7 @@ class _FeaturedCard extends StatelessWidget {
                         borderRadius: BorderRadius.circular(10),
                         boxShadow: [
                           BoxShadow(
-                            color: item.color.withOpacity(0.3),
+                            color: item.color.withValues(alpha: 0.3),
                             blurRadius: 4,
                             offset: const Offset(0, 2),
                           ),
@@ -986,7 +1138,7 @@ class _ListCard extends StatelessWidget {
           // Subtle outer glow instead of a harsh shadow
           boxShadow: [
             BoxShadow(
-              color: item.color.withOpacity(0.05),
+              color: item.color.withValues(alpha: 0.05),
               blurRadius: 20,
               offset: const Offset(0, 10),
             ),
@@ -996,15 +1148,15 @@ class _ListCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(24),
           child: InkWell(
             onTap: onTap,
-            splashColor: item.color.withOpacity(0.1),
+            splashColor: item.color.withValues(alpha: 0.1),
             highlightColor: Colors.transparent,
             child: Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: _HomePageState._surface.withOpacity(0.9),
+                color: _HomePageState._surface.withValues(alpha: 0.9),
                 borderRadius: BorderRadius.circular(24),
                 // Single, crisp border
-                border: Border.all(color: item.color.withOpacity(0.12), width: 1.5),
+                border: Border.all(color: item.color.withValues(alpha: 0.12), width: 1.5),
               ),
               child: Row(
                 textDirection: TextDirection.rtl,
@@ -1018,8 +1170,8 @@ class _ListCard extends StatelessWidget {
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                         colors: [
-                          item.color.withOpacity(0.15),
-                          item.color.withOpacity(0.05),
+                          item.color.withValues(alpha: 0.15),
+                          item.color.withValues(alpha: 0.05),
                         ],
                       ),
                       borderRadius: BorderRadius.circular(18),
@@ -1035,7 +1187,7 @@ class _ListCard extends StatelessWidget {
                         Text(
                           item.title,
                           style: TextStyle(
-                            color: _HomePageState._text.withOpacity(0.9),
+                            color: _HomePageState._text.withValues(alpha: 0.9),
                             fontSize: 16,
                             fontWeight: FontWeight.w700,
                             letterSpacing: -0.5,
@@ -1050,7 +1202,7 @@ class _ListCard extends StatelessWidget {
                     child: Icon(
                       Icons.chevron_right_rounded, // Left arrow for RTL
                       size: 20,
-                      color: item.color.withOpacity(0.5),
+                      color: item.color.withValues(alpha: 0.5),
                     ),
                   ),
                 ],
@@ -1127,17 +1279,6 @@ extension _ZikrPeriodX on _ZikrPeriod {
         return '☀️';
       case _ZikrPeriod.night:
         return '🌙';
-    }
-  }
-
-  String get timeRange {
-    switch (this) {
-      case _ZikrPeriod.morning:
-        return '٤:٠٠ - ١٢:٠٠';
-      case _ZikrPeriod.afternoon:
-        return '١٢:٠٠ - ٦:٠٠';
-      case _ZikrPeriod.night:
-        return '٦:٠٠ - ٤:٠٠';
     }
   }
 

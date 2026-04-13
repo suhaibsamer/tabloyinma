@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:tabloy_iman/services/bookmark_service.dart';
 import 'package:tabloy_iman/services/quran_service.dart';
-import 'package:tabloy_iman/models/quran_verse.dart';
 import 'quran_chapter_screen.dart';
 
 class QuranBookmarksScreen extends StatefulWidget {
@@ -37,7 +36,6 @@ class _QuranBookmarksScreenState extends State<QuranBookmarksScreen> {
   Widget build(BuildContext context) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     final bgColor = isDarkMode ? const Color(0xFF0f172a) : Colors.white;
-    final textColor = isDarkMode ? Colors.white : Colors.black87;
 
     return Scaffold(
       backgroundColor: bgColor,
@@ -117,7 +115,7 @@ class _QuranBookmarksScreenState extends State<QuranBookmarksScreen> {
           color: isDarkMode ? const Color(0xFF1e293b) : const Color(0xFFF8FAFC),
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: const Color(0xFF059669).withOpacity(0.2),
+            color: const Color(0xFF059669).withValues(alpha: 0.2),
           ),
         ),
         child: Column(
@@ -162,3 +160,4 @@ class _QuranBookmarksScreenState extends State<QuranBookmarksScreen> {
     );
   }
 }
+

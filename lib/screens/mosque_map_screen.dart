@@ -197,7 +197,7 @@ class _MosqueMapScreenState extends State<MosqueMapScreen> {
     }
     return ListView.separated(
       itemCount: _mosques.length,
-      separatorBuilder: (_, __) => const Divider(),
+      separatorBuilder: (_, _) => const Divider(),
       itemBuilder: (context, index) {
         final mosque = _mosques[index];
         return ListTile(
@@ -215,3 +215,4 @@ class _MosqueMapScreenState extends State<MosqueMapScreen> {
     );
   }
 }
+

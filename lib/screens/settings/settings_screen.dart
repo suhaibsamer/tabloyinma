@@ -8,6 +8,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../services/notification_service.dart';
 import '../../services/audio_preferences_service.dart';
 import '../../services/reciter_service.dart';
+import '../../services/adhan_download_service.dart';
+import 'dart:io';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -105,7 +107,7 @@ class _SettingsScreenState extends State<SettingsScreen>
         margin: const EdgeInsets.all(16),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(18),
-          side: BorderSide(color: color.withOpacity(0.35)),
+          side: BorderSide(color: color.withValues(alpha: 0.35)),
         ),
         content: Row(
           textDirection: TextDirection.rtl,
@@ -114,7 +116,7 @@ class _SettingsScreenState extends State<SettingsScreen>
               width: 32,
               height: 32,
               decoration: BoxDecoration(
-                color: color.withOpacity(0.14),
+                color: color.withValues(alpha: 0.14),
                 shape: BoxShape.circle,
               ),
               child: Icon(Icons.notifications_active_rounded, color: color, size: 18),
@@ -151,42 +153,39 @@ class _SettingsScreenState extends State<SettingsScreen>
 
   @override
   Widget build(BuildContext context) {
-    return Directionality(
-      textDirection: TextDirection.rtl,
-      child: Scaffold(
-        backgroundColor: _bg,
-        body: Stack(
-          children: [
-            const Positioned.fill(child: _ModernSettingsBackground()),
-            FadeTransition(
-              opacity: _fadeAnim,
-              child: CustomScrollView(
-                physics: const BouncingScrollPhysics(),
-                slivers: [
-                  _buildSliverAppBar(),
-                  SliverToBoxAdapter(
-                    child: Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 10, 16, 28),
-                      child: Column(
-                        children: [
-                          _buildHeroCard(),
-                          const SizedBox(height: 18),
-                          _buildSectionTitle('ڕێکخستنە سەرەکییەکان'),
-                          const SizedBox(height: 12),
-                          _buildMainCards(),
-                          const SizedBox(height: 18),
-                          _buildSectionTitle('زانیاری و پشتیوانی'),
-                          const SizedBox(height: 12),
-                          _buildInfoCards(),
-                        ],
-                      ),
+    return Scaffold(
+      backgroundColor: _bg,
+      body: Stack(
+        children: [
+          const Positioned.fill(child: _ModernSettingsBackground()),
+          FadeTransition(
+            opacity: _fadeAnim,
+            child: CustomScrollView(
+              physics: const BouncingScrollPhysics(),
+              slivers: [
+                _buildSliverAppBar(),
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsetsDirectional.fromSTEB(16, 10, 16, 28),
+                    child: Column(
+                      children: [
+                        _buildHeroCard(),
+                        const SizedBox(height: 18),
+                        _buildSectionTitle('ڕێکخستنە سەرەکییەکان'),
+                        const SizedBox(height: 12),
+                        _buildMainCards(),
+                        const SizedBox(height: 18),
+                        _buildSectionTitle('زانیاری و پشتیوانی'),
+                        const SizedBox(height: 12),
+                        _buildInfoCards(),
+                      ],
                     ),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -199,13 +198,14 @@ class _SettingsScreenState extends State<SettingsScreen>
       floating: true,
       centerTitle: true,
       expandedHeight: 90,
+      automaticallyImplyLeading: true,
       leading: Padding(
         padding: const EdgeInsets.all(10),
         child: Container(
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.08),
+            color: Colors.white.withValues(alpha: 0.08),
             borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: Colors.white.withOpacity(0.08)),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
           ),
           child: IconButton(
             onPressed: () => Navigator.pop(context),
@@ -241,16 +241,16 @@ class _SettingsScreenState extends State<SettingsScreen>
               borderRadius: BorderRadius.circular(30),
               gradient: LinearGradient(
                 colors: [
-                  _accent.withOpacity(0.28),
-                  _accent2.withOpacity(0.18),
+                  _accent.withValues(alpha: 0.28),
+                  _accent2.withValues(alpha: 0.18),
                 ],
-                begin: Alignment.topRight,
-                end: Alignment.bottomLeft,
+                begin: AlignmentDirectional.topStart,
+                end: AlignmentDirectional.bottomEnd,
               ),
-              border: Border.all(color: Colors.white.withOpacity(0.10)),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.10)),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.18),
+                  color: Colors.black.withValues(alpha: 0.18),
                   blurRadius: 24,
                   offset: const Offset(0, 12),
                 ),
@@ -263,7 +263,7 @@ class _SettingsScreenState extends State<SettingsScreen>
                   height: 62,
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(20),
-                    color: Colors.white.withOpacity(0.14),
+                    color: Colors.white.withValues(alpha: 0.14),
                   ),
                   child: const Icon(
                     Icons.settings_rounded,
@@ -274,11 +274,11 @@ class _SettingsScreenState extends State<SettingsScreen>
                 const SizedBox(width: 14),
                 const Expanded(
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         'کۆنترۆڵی ئەپەکەت',
-                        textAlign: TextAlign.right,
+                        textAlign: TextAlign.start,
                         style: TextStyle(
                           color: Colors.white70,
                           fontSize: 12,
@@ -288,7 +288,7 @@ class _SettingsScreenState extends State<SettingsScreen>
                       SizedBox(height: 6),
                       Text(
                         'ڕێکخستن بە شێوازێکی مۆدێرن',
-                        textAlign: TextAlign.right,
+                        textAlign: TextAlign.start,
                         style: TextStyle(
                           color: Colors.white,
                           fontSize: 20,
@@ -298,7 +298,7 @@ class _SettingsScreenState extends State<SettingsScreen>
                       SizedBox(height: 6),
                       Text(
                         'شار، دەنگی بانگ، زەکات و زانیارییەکانی ئەپ لە یەک شوێن',
-                        textAlign: TextAlign.right,
+                        textAlign: TextAlign.start,
                         style: TextStyle(
                           color: Colors.white70,
                           fontSize: 12,
@@ -340,7 +340,7 @@ class _SettingsScreenState extends State<SettingsScreen>
         const SizedBox(width: 10),
 
         Expanded(
-          child: Container(height: 1, color: Colors.white.withOpacity(0.08)),
+          child: Container(height: 1, color: Colors.white.withValues(alpha: 0.08)),
         ),
       ],
     );
@@ -366,15 +366,15 @@ class _SettingsScreenState extends State<SettingsScreen>
               trailingText: 'گۆڕین',
               onTap: _showCitySelectionDialog,
             ),
-            const SizedBox(height: 12),
-            _buildSettingsTile(
-              icon: Icons.mosque_rounded,
-              iconColor: _gold,
-              title: 'دەنگی بانگ',
-              subtitle: currentAthan['name']!,
-              trailingText: 'هەڵبژاردن',
-              onTap: _showAthanSelectionDialog,
-            ),
+            // const SizedBox(height: 12),
+            // _buildSettingsTile(
+            //   icon: Icons.mosque_rounded,
+            //   iconColor: _gold,
+            //   title: 'دەنگی بانگ',
+            //   subtitle: currentAthan['name']!,
+            //   trailingText: 'هەڵبژاردن',
+            //   onTap: _showAthanSelectionDialog,
+            // ),
             const SizedBox(height: 12),
             _buildSettingsTile(
               icon: Icons.record_voice_over_rounded,
@@ -433,16 +433,16 @@ class _SettingsScreenState extends State<SettingsScreen>
           borderRadius: BorderRadius.circular(24),
           gradient: LinearGradient(
             colors: [
-              _surface.withOpacity(0.96),
-              _surface2.withOpacity(0.90),
+              _surface.withValues(alpha: 0.96),
+              _surface2.withValues(alpha: 0.90),
             ],
-            begin: Alignment.topRight,
-            end: Alignment.bottomLeft,
+            begin: AlignmentDirectional.topStart,
+            end: AlignmentDirectional.bottomEnd,
           ),
-          border: Border.all(color: Colors.white.withOpacity(0.08)),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.14),
+              color: Colors.black.withValues(alpha: 0.14),
               blurRadius: 18,
               offset: const Offset(0, 10),
             ),
@@ -454,7 +454,7 @@ class _SettingsScreenState extends State<SettingsScreen>
               width: 48,
               height: 48,
               decoration: BoxDecoration(
-                color: iconColor.withOpacity(0.14),
+                color: iconColor.withValues(alpha: 0.14),
                 borderRadius: BorderRadius.circular(16),
               ),
               child: Icon(icon, color: iconColor, size: 24),
@@ -487,9 +487,9 @@ class _SettingsScreenState extends State<SettingsScreen>
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
               decoration: BoxDecoration(
-                color: iconColor.withOpacity(0.12),
+                color: iconColor.withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(30),
-                border: Border.all(color: iconColor.withOpacity(0.18)),
+                border: Border.all(color: iconColor.withValues(alpha: 0.18)),
               ),
               child: Text(
                 trailingText,
@@ -512,74 +512,161 @@ class _SettingsScreenState extends State<SettingsScreen>
       context: context,
       barrierDismissible: true,
       barrierLabel: '',
-      barrierColor: Colors.black.withOpacity(0.75),
+      barrierColor: Colors.black.withValues(alpha: 0.75),
       transitionDuration: const Duration(milliseconds: 350),
-      pageBuilder: (ctx, _, __) {
-        return Consumer<AudioPreferencesService>(
-          builder: (context, audioPrefs, _) {
-            return Center(
-              child: Material(
-                color: Colors.transparent,
-                child: Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 20),
-                  padding: const EdgeInsets.all(22),
-                  decoration: BoxDecoration(
-                    color: _surface,
-                    borderRadius: BorderRadius.circular(30),
-                    border: Border.all(color: Colors.white.withOpacity(0.08)),
-                  ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Text(
-                        'دەنگی بانگ',
-                        style: TextStyle(color: _textPrimary, fontSize: 19, fontWeight: FontWeight.w900),
+      pageBuilder: (ctx, _, _) {
+        double downloadProgress = 0;
+        bool isDownloading = false;
+
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return Consumer<AudioPreferencesService>(
+              builder: (context, audioPrefs, _) {
+                return Center(
+                  child: Material(
+                    color: Colors.transparent,
+                    child: Container(
+                      margin: const EdgeInsets.symmetric(horizontal: 20),
+                      padding: const EdgeInsets.all(22),
+                      decoration: BoxDecoration(
+                        color: _surface,
+                        borderRadius: BorderRadius.circular(30),
+                        border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
                       ),
-                      const SizedBox(height: 18),
-                      ...audioPrefs.availableAthans.map((athan) {
-                        final isSelected = audioPrefs.selectedAthanSound == athan['file'];
-                        return Container(
-                          margin: const EdgeInsets.only(bottom: 10),
-                          decoration: BoxDecoration(
-                            color: isSelected ? _accent.withOpacity(0.12) : _bg2.withOpacity(0.85),
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(
-                              color: isSelected ? _accent.withOpacity(0.45) : Colors.white.withOpacity(0.06),
-                            ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Text(
+                            'دەنگی بانگ',
+                            style: TextStyle(color: _textPrimary, fontSize: 19, fontWeight: FontWeight.w900),
                           ),
-                          child: ListTile(
-                            onTap: () => audioPrefs.setSelectedAthan(athan['file']!),
-                            title: Text(
-                              athan['name']!,
-                              style: TextStyle(
-                                color: isSelected ? _accent : _textPrimary,
-                                fontWeight: FontWeight.w800,
-                              ),
-                              textAlign: TextAlign.right,
-                            ),
-                            leading: IconButton(
-                              icon: const Icon(Icons.play_circle_fill_rounded, color: _accent2),
-                              onPressed: () async {
-                                try {
-                                  await _previewPlayer.stop();
-                                  _showCustomSnackBar('پێشبینینی ${athan['name']}', _accent2);
-                                } catch (e) {
-                                  _showCustomSnackBar('هەڵە لە لێدان', _red);
-                                }
-                              },
-                            ),
-                            trailing: isSelected 
-                              ? const Icon(Icons.check_circle_rounded, color: _accent)
-                              : null,
-                          ),
-                        );
-                      }),
-                    ],
+                          const SizedBox(height: 18),
+                          ...audioPrefs.availableAthans.map((athan) {
+                            final isSelected = audioPrefs.selectedAthanSound == athan['file'];
+                            final isCustom = athan['id'] == 'custom';
+                            
+                            return FutureBuilder<bool>(
+                              future: isCustom ? AdhanDownloadService.isAdhanDownloaded() : Future.value(true),
+                              builder: (context, snapshot) {
+                                final isDownloaded = snapshot.data ?? false;
+                                
+                                return Container(
+                                  margin: const EdgeInsets.only(bottom: 10),
+                                  decoration: BoxDecoration(
+                                    color: isSelected ? _accent.withValues(alpha: 0.12) : _bg2.withValues(alpha: 0.85),
+                                    borderRadius: BorderRadius.circular(20),
+                                    border: Border.all(
+                                      color: isSelected ? _accent.withValues(alpha: 0.45) : Colors.white.withValues(alpha: 0.06),
+                                    ),
+                                  ),
+                                  child: ListTile(
+                                    onTap: () async {
+                                      if (isCustom && !isDownloaded) {
+                                        if (isDownloading) return;
+                                        setDialogState(() => isDownloading = true);
+                                        final path = await AdhanDownloadService.downloadAdhan(
+                                          onProgress: (p) => setDialogState(() => downloadProgress = p),
+                                        );
+                                        setDialogState(() => isDownloading = false);
+                                        if (path != null) {
+                                          audioPrefs.setSelectedAthan(athan['file']!);
+                                          _showCustomSnackBar('بانگ بە سەرکەوتوویی دابەزی', _green);
+                                        } else {
+                                          _showCustomSnackBar('کێشەیەک لە داونلۆد دروست بوو', _red);
+                                        }
+                                      } else {
+                                        audioPrefs.setSelectedAthan(athan['file']!);
+                                      }
+                                    },
+                                    title: Text(
+                                      athan['name']!,
+                                      style: TextStyle(
+                                        color: isSelected ? _accent : _textPrimary,
+                                        fontWeight: FontWeight.w800,
+                                      ),
+                                      textAlign: TextAlign.start,
+                                    ),
+                                    subtitle: isCustom && isDownloading
+                                        ? Padding(
+                                            padding: const EdgeInsets.only(top: 8),
+                                            child: LinearProgressIndicator(
+                                              value: downloadProgress,
+                                              color: _accent,
+                                              backgroundColor: _bg2,
+                                              borderRadius: BorderRadius.circular(10),
+                                            ),
+                                          )
+                                        : (isCustom && !isDownloaded 
+                                            ? const Text('بۆ بەکارهێنان دەبێت دایبگریت', 
+                                                style: TextStyle(color: _textMuted, fontSize: 10), 
+                                                textAlign: TextAlign.start) 
+                                            : null),
+                                    leading: isDownloading && isCustom 
+                                      ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2, color: _accent)) 
+                                      : IconButton(
+                                      icon: Icon(
+                                        isCustom && !isDownloaded ? Icons.download_for_offline_rounded : Icons.play_circle_fill_rounded, 
+                                        color: isCustom && !isDownloaded ? _textMuted : _accent2
+                                      ),
+                                      onPressed: () async {
+                                        if (isCustom && !isDownloaded) {
+                                          if (isDownloading) return;
+                                          setDialogState(() => isDownloading = true);
+                                          final path = await AdhanDownloadService.downloadAdhan(
+                                            onProgress: (p) => setDialogState(() => downloadProgress = p),
+                                          );
+                                          setDialogState(() => isDownloading = false);
+                                          if (path != null) {
+                                            audioPrefs.setSelectedAthan(athan['file']!);
+                                            _showCustomSnackBar('بانگ بە سەرکەوتوویی دابەزی', _green);
+                                          } else {
+                                            _showCustomSnackBar('کێشەیەک لە داونلۆد دروست بوو', _red);
+                                          }
+                                        } else {
+                                          try {
+                                            await _previewPlayer.stop();
+                                            if (isCustom) {
+                                               final path = await AdhanDownloadService.getCustomAdhanPath();
+                                               if (path != null && await File(path).exists()) {
+                                                 await _previewPlayer.setFilePath(path);
+                                               } else {
+                                                 _showCustomSnackBar('فایلی دەنگ نەدۆزرایەوە', _red);
+                                                 return;
+                                               }
+                                            } else {
+                                               // Check if file exists in assets before playing
+                                               // Since we noticed missing assets, let's be safe
+                                               try {
+                                                  await _previewPlayer.setAsset('assets/notfication/${athan['file']}.mp3');
+                                               } catch (e) {
+                                                  _showCustomSnackBar('ئەم دەنگە لە ئێستادا بەردەست نییە', _red);
+                                                  return;
+                                               }
+                                            }
+                                            await _previewPlayer.play();
+                                            _showCustomSnackBar('پێشبینینی ${athan['name']}', _accent2);
+                                          } catch (e) {
+                                            _showCustomSnackBar('هەڵە لە لێدان', _red);
+                                          }
+                                        }
+                                      },
+                                    ),
+                                    trailing: isSelected 
+                                      ? const Icon(Icons.check_circle_rounded, color: _accent)
+                                      : (isCustom && !isDownloaded ? const Icon(Icons.cloud_download_rounded, color: _textMuted) : null),
+                                  ),
+                                );
+                              }
+                            );
+                          }),
+                        ],
+                      ),
+                    ),
                   ),
-                ),
-              ),
+                );
+              },
             );
-          },
+          }
         );
       },
     );
@@ -590,9 +677,9 @@ class _SettingsScreenState extends State<SettingsScreen>
       context: context,
       barrierDismissible: true,
       barrierLabel: '',
-      barrierColor: Colors.black.withOpacity(0.75),
+      barrierColor: Colors.black.withValues(alpha: 0.75),
       transitionDuration: const Duration(milliseconds: 350),
-      pageBuilder: (ctx, _, __) {
+      pageBuilder: (ctx, _, _) {
         return StatefulBuilder(
           builder: (context, setDialogState) {
             final reciters = ReciterService().search(_searchQuery);
@@ -605,7 +692,7 @@ class _SettingsScreenState extends State<SettingsScreen>
                   decoration: BoxDecoration(
                     color: _surface,
                     borderRadius: BorderRadius.circular(30),
-                    border: Border.all(color: Colors.white.withOpacity(0.08)),
+                    border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
                   ),
                   child: Column(
                     children: [
@@ -678,13 +765,13 @@ class _SettingsScreenState extends State<SettingsScreen>
       context: context,
       barrierDismissible: true,
       barrierLabel: '',
-      barrierColor: Colors.black.withOpacity(0.75),
+      barrierColor: Colors.black.withValues(alpha: 0.75),
       transitionDuration: const Duration(milliseconds: 350),
       transitionBuilder: (ctx, anim, _, child) => ScaleTransition(
         scale: CurvedAnimation(parent: anim, curve: Curves.easeOutBack),
         child: FadeTransition(opacity: anim, child: child),
       ),
-      pageBuilder: (ctx, _, __) => _buildCityDialogContent(ctx),
+      pageBuilder: (ctx, _, _) => _buildCityDialogContent(ctx),
     );
   }
 
@@ -698,7 +785,7 @@ class _SettingsScreenState extends State<SettingsScreen>
           decoration: BoxDecoration(
             color: _surface,
             borderRadius: BorderRadius.circular(30),
-            border: Border.all(color: Colors.white.withOpacity(0.08)),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -724,13 +811,13 @@ class _SettingsScreenState extends State<SettingsScreen>
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
                       color: isSelected
-                          ? _accent.withOpacity(0.12)
-                          : _bg2.withOpacity(0.85),
+                          ? _accent.withValues(alpha: 0.12)
+                          : _bg2.withValues(alpha: 0.85),
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(
                         color: isSelected
-                            ? _accent.withOpacity(0.45)
-                            : Colors.white.withOpacity(0.06),
+                            ? _accent.withValues(alpha: 0.45)
+                            : Colors.white.withValues(alpha: 0.06),
                       ),
                     ),
                     child: Row(
@@ -745,7 +832,7 @@ class _SettingsScreenState extends State<SettingsScreen>
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
                               border: Border.all(
-                                color: Colors.white.withOpacity(0.15),
+                                color: Colors.white.withValues(alpha: 0.15),
                               ),
                             ),
                           ),
@@ -791,13 +878,13 @@ class _SettingsScreenState extends State<SettingsScreen>
       context: context,
       barrierDismissible: true,
       barrierLabel: '',
-      barrierColor: Colors.black.withOpacity(0.75),
+      barrierColor: Colors.black.withValues(alpha: 0.75),
       transitionDuration: const Duration(milliseconds: 350),
       transitionBuilder: (ctx, anim, _, child) => ScaleTransition(
         scale: CurvedAnimation(parent: anim, curve: Curves.easeOutBack),
         child: FadeTransition(opacity: anim, child: child),
       ),
-      pageBuilder: (ctx, _, __) => _buildAboutUsDialogContent(ctx),
+      pageBuilder: (ctx, _, _) => _buildAboutUsDialogContent(ctx),
     );
   }
 
@@ -811,7 +898,7 @@ class _SettingsScreenState extends State<SettingsScreen>
           decoration: BoxDecoration(
             color: _surface,
             borderRadius: BorderRadius.circular(30),
-            border: Border.all(color: Colors.white.withOpacity(0.08)),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -821,7 +908,7 @@ class _SettingsScreenState extends State<SettingsScreen>
                 height: 78,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: _accent.withOpacity(0.12),
+                  color: _accent.withValues(alpha: 0.12),
                 ),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(99),
@@ -897,18 +984,18 @@ class _SettingsScreenState extends State<SettingsScreen>
       child: Container(
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: _bg2.withOpacity(0.85),
+          color: _bg2.withValues(alpha: 0.85),
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: url != null
-                ? _accent.withOpacity(0.20)
-                : Colors.white.withOpacity(0.06),
+                ? _accent.withValues(alpha: 0.20)
+                : Colors.white.withValues(alpha: 0.06),
           ),
         ),
         child: Row(
           children: [
             if (url != null)
-              Icon(Icons.open_in_new_rounded, color: _accent.withOpacity(0.65), size: 16),
+              Icon(Icons.open_in_new_rounded, color: _accent.withValues(alpha: 0.65), size: 16),
             const Spacer(),
             Column(
               crossAxisAlignment: CrossAxisAlignment.end,
@@ -945,13 +1032,13 @@ class _SettingsScreenState extends State<SettingsScreen>
       context: context,
       barrierDismissible: true,
       barrierLabel: '',
-      barrierColor: Colors.black.withOpacity(0.75),
+      barrierColor: Colors.black.withValues(alpha: 0.75),
       transitionDuration: const Duration(milliseconds: 350),
       transitionBuilder: (ctx, anim, _, child) => ScaleTransition(
         scale: CurvedAnimation(parent: anim, curve: Curves.easeOutBack),
         child: FadeTransition(opacity: anim, child: child),
       ),
-      pageBuilder: (ctx, _, __) => _buildAboutAppDialogContent(ctx),
+      pageBuilder: (ctx, _, _) => _buildAboutAppDialogContent(ctx),
     );
   }
 
@@ -982,7 +1069,7 @@ class _SettingsScreenState extends State<SettingsScreen>
           decoration: BoxDecoration(
             color: _surface,
             borderRadius: BorderRadius.circular(30),
-            border: Border.all(color: Colors.white.withOpacity(0.08)),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
           ),
           child: Column(
             children: [
@@ -992,11 +1079,11 @@ class _SettingsScreenState extends State<SettingsScreen>
                   borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
                   gradient: LinearGradient(
                     colors: [
-                      _accent.withOpacity(0.18),
+                      _accent.withValues(alpha: 0.18),
                       Colors.transparent,
                     ],
-                    begin: Alignment.topRight,
-                    end: Alignment.bottomLeft,
+                    begin: AlignmentDirectional.topStart,
+                    end: AlignmentDirectional.bottomEnd,
                   ),
                 ),
                 child: const Column(
@@ -1034,9 +1121,9 @@ class _SettingsScreenState extends State<SettingsScreen>
                         margin: const EdgeInsets.only(bottom: 8),
                         padding: const EdgeInsets.all(14),
                         decoration: BoxDecoration(
-                          color: _bg2.withOpacity(0.85),
+                          color: _bg2.withValues(alpha: 0.85),
                           borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: Colors.white.withOpacity(0.06)),
+                          border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
                         ),
                         child: Row(
                           children: [
@@ -1091,7 +1178,7 @@ class _SettingsScreenState extends State<SettingsScreen>
           borderRadius: BorderRadius.circular(18),
           boxShadow: [
             BoxShadow(
-              color: _accent.withOpacity(0.28),
+              color: _accent.withValues(alpha: 0.28),
               blurRadius: 16,
               offset: const Offset(0, 8),
             ),
@@ -1133,19 +1220,19 @@ class _ModernSettingsBackground extends StatelessWidget {
             ),
           ),
         ),
-        Positioned(
+        PositionedDirectional(
           top: -80,
-          right: -40,
+          end: -40,
           child: _GlowBlob(
-            color: const Color(0xFF7C5CFF).withOpacity(0.16),
+            color: const Color(0xFF7C5CFF).withValues(alpha: 0.16),
             size: 220,
           ),
         ),
-        Positioned(
+        PositionedDirectional(
           top: 180,
-          left: -50,
+          start: -50,
           child: _GlowBlob(
-            color: const Color(0xFF46C2FF).withOpacity(0.12),
+            color: const Color(0xFF46C2FF).withValues(alpha: 0.12),
             size: 180,
           ),
         ),
@@ -1179,3 +1266,4 @@ class _GlowBlob extends StatelessWidget {
     );
   }
 }
+

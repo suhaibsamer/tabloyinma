@@ -2,6 +2,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:tabloy_iman/services/zakat_service.dart';
+import 'package:tabloy_iman/utils/info_utils.dart';
 
 // ──────────────────────────────────────────────
 // Design Tokens
@@ -10,7 +11,6 @@ abstract class _T {
   static const bg = Color(0xFF070B14);
   static const surface = Color(0xFF101726);
   static const surface2 = Color(0xFF151D2E);
-  static const card = Color(0xFF121A2A);
   static const border = Color(0xFF25304A);
 
   static const primary = Color(0xFF8B5CF6);
@@ -82,10 +82,10 @@ class _ZakatScreenState extends State<ZakatScreen>
     if (!mounted) return;
 
     setState(() {
-      final gp = r['gold_price'] as double? ?? 0;
+      final gp = r['gold_price'] ?? 0;
       if (gp != 0) _goldPriceCtrl.text = gp.toStringAsFixed(0);
 
-      final dp = r['dollar_price'] as double? ?? 1500;
+      final dp = r['dollar_price'] ?? 1500;
       _usdRateCtrl.text = (dp * 100).toInt().toString();
 
       _goldNisab = r['gold_nisab'] ?? 85;
@@ -120,44 +120,41 @@ class _ZakatScreenState extends State<ZakatScreen>
 
   @override
   Widget build(BuildContext context) {
-    return Directionality(
-      textDirection: TextDirection.rtl,
-      child: AnnotatedRegion<SystemUiOverlayStyle>(
-        value: SystemUiOverlayStyle.light,
-        child: Scaffold(
-          backgroundColor: _T.bg,
-          body: Stack(
-            children: [
-              _buildBackgroundGlow(),
-              SafeArea(
-                child: Column(
-                  children: [
-                    _buildHeader(),
-                    Expanded(
-                      child: SingleChildScrollView(
-                        physics: const BouncingScrollPhysics(),
-                        padding: const EdgeInsets.only(bottom: 32),
-                        child: Column(
-                          children: [
-                            const SizedBox(height: 8),
-                            _buildHeroCard(),
-                            const SizedBox(height: 16),
-                            _buildQuickStats(),
-                            const SizedBox(height: 18),
-                            _buildTabs(),
-                            const SizedBox(height: 16),
-                            _buildTabContent(),
-                            const SizedBox(height: 24),
-                            _buildCalculateButton(),
-                          ],
-                        ),
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle.light,
+      child: Scaffold(
+        backgroundColor: _T.bg,
+        body: Stack(
+          children: [
+            _buildBackgroundGlow(),
+            SafeArea(
+              child: Column(
+                children: [
+                  _buildHeader(),
+                  Expanded(
+                    child: SingleChildScrollView(
+                      physics: const BouncingScrollPhysics(),
+                      padding: const EdgeInsets.only(bottom: 32),
+                      child: Column(
+                        children: [
+                          const SizedBox(height: 8),
+                          _buildHeroCard(),
+                          const SizedBox(height: 16),
+                          _buildQuickStats(),
+                          const SizedBox(height: 18),
+                          _buildTabs(),
+                          const SizedBox(height: 16),
+                          _buildTabContent(),
+                          const SizedBox(height: 24),
+                          _buildCalculateButton(),
+                        ],
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
@@ -169,27 +166,27 @@ class _ZakatScreenState extends State<ZakatScreen>
   Widget _buildBackgroundGlow() {
     return Stack(
       children: [
-        Positioned(
+        PositionedDirectional(
           top: -80,
-          right: -40,
+          end: -40,
           child: Container(
             width: 220,
             height: 220,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: _T.primary.withOpacity(0.18),
+              color: _T.primary.withValues(alpha: 0.18),
             ),
           ),
         ),
-        Positioned(
+        PositionedDirectional(
           top: 130,
-          left: -50,
+          start: -50,
           child: Container(
             width: 180,
             height: 180,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: _T.blue.withOpacity(0.10),
+              color: _T.blue.withValues(alpha: 0.10),
             ),
           ),
         ),
@@ -208,7 +205,7 @@ class _ZakatScreenState extends State<ZakatScreen>
   // ──────────────────────────────────────────
   Widget _buildHeader() {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 14, 20, 10),
+      padding: const EdgeInsetsDirectional.fromSTEB(20, 14, 20, 10),
       child: Row(
         children: [
           _IconGlassButton(
@@ -238,7 +235,15 @@ class _ZakatScreenState extends State<ZakatScreen>
             ],
           ),
           const Spacer(),
-          const _IconGlassButton(icon: Icons.info_outline_rounded),
+          _IconGlassButton(
+            icon: Icons.info_outline_rounded,
+            onTap: () => InfoUtils.showInfo(
+              context,
+              title: 'زەکات',
+              description: 'ژمێرەری زەکات بۆ ئەوەی بزانیت چەند زەکاتت لەسەر فەرزە.',
+              howToUse: 'بڕی پارە یان ئاڵتوونەکەت داخڵ بکە، بەرنامەکە بڕی زەکاتی پێویستت بۆ دەژمێرێت.',
+            ),
+          ),
         ],
       ),
     );
@@ -263,17 +268,17 @@ class _ZakatScreenState extends State<ZakatScreen>
             const Color(0xFF161F34),
             const Color(0xFF0F172A),
           ],
-          begin: Alignment.topRight,
-          end: Alignment.bottomLeft,
+          begin: AlignmentDirectional.topStart,
+          end: AlignmentDirectional.bottomEnd,
         ),
         border: Border.all(
           color: _nisabMet
-              ? _T.green.withOpacity(0.35)
-              : Colors.white.withOpacity(0.08),
+              ? _T.green.withValues(alpha: 0.35)
+              : Colors.white.withValues(alpha: 0.08),
         ),
         boxShadow: [
           BoxShadow(
-            color: (_nisabMet ? _T.green : _T.primary).withOpacity(0.12),
+            color: (_nisabMet ? _T.green : _T.primary).withValues(alpha: 0.12),
             blurRadius: 28,
             spreadRadius: 1,
             offset: const Offset(0, 10),
@@ -322,7 +327,7 @@ class _ZakatScreenState extends State<ZakatScreen>
           const SizedBox(height: 18),
           Container(
             height: 1,
-            color: Colors.white.withOpacity(0.08),
+            color: Colors.white.withValues(alpha: 0.08),
           ),
           const SizedBox(height: 16),
           Row(
@@ -353,14 +358,14 @@ class _ZakatScreenState extends State<ZakatScreen>
 
   Widget _buildStatusPill() {
     final color = _nisabMet ? _T.green : _T.red;
-    final bg = color.withOpacity(0.12);
+    final bg = color.withValues(alpha: 0.12);
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
       decoration: BoxDecoration(
         color: bg,
         borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: color.withOpacity(0.25)),
+        border: Border.all(color: color.withValues(alpha: 0.25)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -626,7 +631,7 @@ class _ZakatScreenState extends State<ZakatScreen>
             ),
             boxShadow: [
               BoxShadow(
-                color: _T.primary.withOpacity(0.28),
+                color: _T.primary.withValues(alpha: 0.28),
                 blurRadius: 22,
                 offset: const Offset(0, 10),
               ),
@@ -670,9 +675,9 @@ class _IconGlassButton extends StatelessWidget {
         width: 44,
         height: 44,
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.06),
+          color: Colors.white.withValues(alpha: 0.06),
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.white.withOpacity(0.08)),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
         ),
         child: Icon(icon, color: _T.text, size: 18),
       ),
@@ -698,9 +703,9 @@ class _MetricBox extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.05),
+        color: Colors.white.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: Colors.white.withOpacity(0.06)),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -773,7 +778,7 @@ class _MiniInfoCard extends StatelessWidget {
             width: 34,
             height: 34,
             decoration: BoxDecoration(
-              color: iconColor.withOpacity(0.12),
+              color: iconColor.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(10),
             ),
             child: Icon(icon, color: iconColor, size: 17),
@@ -819,7 +824,7 @@ class _SectionHeader extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: _T.surface.withOpacity(0.85),
+        color: _T.surface.withValues(alpha: 0.85),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: _T.border),
       ),
@@ -883,14 +888,14 @@ class _ModernInputFieldState extends State<_ModernInputField> {
         borderRadius: BorderRadius.circular(22),
         border: Border.all(
           color: _focused
-              ? widget.accent.withOpacity(0.65)
-              : _T.border.withOpacity(0.9),
+              ? widget.accent.withValues(alpha: 0.65)
+              : _T.border.withValues(alpha: 0.9),
           width: 1.2,
         ),
         boxShadow: _focused
             ? [
           BoxShadow(
-            color: widget.accent.withOpacity(0.12),
+            color: widget.accent.withValues(alpha: 0.12),
             blurRadius: 18,
             offset: const Offset(0, 8),
           )
@@ -903,7 +908,7 @@ class _ModernInputFieldState extends State<_ModernInputField> {
             width: 46,
             height: 46,
             decoration: BoxDecoration(
-              color: widget.accent.withOpacity(0.12),
+              color: widget.accent.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(14),
             ),
             child: Icon(widget.icon, color: widget.accent, size: 20),

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../utils/kurdish_styles.dart';
 import '../../widgets/font_size_controls.dart';
 import '../../services/theme_manager.dart';
+import '../../utils/info_utils.dart';
 
 class AtahyatScreen extends StatelessWidget {
   const AtahyatScreen({super.key});
@@ -20,91 +21,91 @@ class AtahyatScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Directionality(
-      textDirection: TextDirection.rtl,
-      child: Scaffold(
-        backgroundColor: _bg,
-        extendBodyBehindAppBar: true,
-        appBar: AppBar(
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          centerTitle: true,
-          title: Text(
-            'تەحیات',
-            style: KurdishStyles.getTitleStyle(
-              color: _textPrimary,
-              fontSize: 20,
-            ),
-          ),
-          leading: IconButton(
-            icon: const Icon(
-              Icons.arrow_back_ios_new_rounded,
-              color: _textPrimary,
-              size: 20,
-            ),
-            onPressed: () => Navigator.pop(context),
+    return Scaffold(
+      backgroundColor: _bg,
+      extendBodyBehindAppBar: true,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        centerTitle: true,
+        title: Text(
+          'تەحیات',
+          style: KurdishStyles.getTitleStyle(
+            color: _textPrimary,
+            fontSize: 20,
           ),
         ),
-        body: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [_bg, _bg2],
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.info_outline_rounded, color: _textPrimary),
+            onPressed: () => InfoUtils.showInfo(
+              context,
+              title: 'تەحیات',
+              description: 'فێربوونی تەحیات و سەڵاوات و دوعاکانی نێو نوێژ.',
+              howToUse: 'دەتوانیت دەقەکان بخوێنیتەوە و گوێ لە دەربڕینی ڕاستیان بگریت.',
             ),
           ),
-          child: Stack(
-            children: [
-              _buildBackgroundGlow(),
-              SafeArea(
-                child: Column(
-                  children: [
-                    const SizedBox(height: 8),
-                    _buildTopHero(),
-                    const SizedBox(height: 14),
-                    const Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 16),
-                      child: FontSizeControls(),
-                    ),
-                    const SizedBox(height: 10),
-                    Expanded(
-                      child: ValueListenableBuilder<double>(
-                        valueListenable: ThemeManager().fontSizeDelta,
-                        builder: (context, _, __) {
-                          return ListView(
-                            padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
-                            children: [
-                              _buildSectionCard(
-                                icon: Icons.auto_awesome_rounded,
-                                badge: 'ذکر',
-                                title: 'التَّحِيَّاتُ',
-                                subtitle: 'دەقی عەرەبی و وەرگێڕانی کوردی',
-                                arabic:
-                                'التَّحِيَّاتُ لِلَّهِ وَالصَّلَواتُ وَالطَّيِّباتُ، السَّلامُ عَلَيْكَ أيُّها النَّبِيُّ وَرَحْمَةُ اللَّهِ وَبَرَکاتُهُ، السَّلامُ عَلَيْنا وَعَلَى عِبادِ اللَّهِ الصَّالِحِينَ، أَشْهَدُ أَنْ لا إلَهَ إلَّا اللَّهُ وَأَشْهَدُ أَنَّ مُحَمَّدًا عَبْدُهُ وَرَسُولُهُ.',
-                                kurdish:
-                                'سڵاو و نزا و پاکی و بێگەردی بۆ خودایە، سڵاو لەسەر تۆ بێت ئەی پێغەمبەر و ڕەحمەت و بەرەکەتەکانی خودات لێبێت، سڵاو لەسەر ئێمە و لەسەر هەموو بەندە چاکەکانی خودا بێت، شایەتی دەدەم کە هیچ خودایەک نییە شایستەی پەرستن بێت جگە لە الله، و شایەتی دەدەم کە محمد بەندە و نێردراوی خودایە.',
-                              ),
-                              const SizedBox(height: 18),
-                              _buildSectionCard(
-                                icon: Icons.favorite_rounded,
-                                badge: 'دروود',
-                                title: 'الصَّلَواتُ',
-                                subtitle: 'سەڵاوات لەسەر پێغەمبەر ﷺ',
-                                arabic:
-                                'اللَّهُمَّ صَلِّ عَلَى مُحَمَّدٍ وَعَلَى آلِ مُحَمَّدٍ، کَمَا صَلَّيْتَ عَلَى إبْرَاهِيمَ وَعَلَى آلِ إبْرَاهِيمَ، إنَّكَ حَمِيدٌ مَجِيدٌ، اللَّهُمَّ بَارِكْ عَلَى مُحَمَّدٍ وَعَلَى آلِ مُحَمَّدٍ، کَمَا بَارَکتَ عَلَى إبْرَاهِيمَ وَعَلَى آلِ إبْرَاهِيمَ، إنَّكَ حَمِيدٌ مَجِيدٌ.',
-                                kurdish:
-                                'خودایە سەڵاوات و دروود بنێرە بۆ سەر محمد و ئال و بەیتی محمد، هەروەک چۆن سەڵاواتت نارد بۆ سەر ئیبراهیم و ئال و بەیتی ئیبراهیم، بەڕاستی تۆ سوپاسکراو و خاوەن شکۆیت. خودایە بەرەکەت بڕژێنە بەسەر محمد و ئال و بەیتی محمد، هەروەک چۆن بەرەکەتت ڕشت بەسەر ئیبراهیم و ئال و بەیتی ئیبراهیم، بەڕاستی تۆ سوپاسکراو و خاوەن شکۆیت.',
-                              ),
-                            ],
-                          );
-                        },
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
+        ],
+      ),
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [_bg, _bg2],
           ),
+        ),
+        child: Stack(
+          children: [
+            _buildBackgroundGlow(),
+            SafeArea(
+              child: Column(
+                children: [
+                  const SizedBox(height: 8),
+                  _buildTopHero(),
+                  const SizedBox(height: 14),
+                  const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 16),
+                    child: FontSizeControls(),
+                  ),
+                  const SizedBox(height: 10),
+                  Expanded(
+                    child: ValueListenableBuilder<double>(
+                      valueListenable: ThemeManager().fontSizeDelta,
+                      builder: (context, _, _) {
+                        return ListView(
+                          padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+                          children: [
+                            _buildSectionCard(
+                              icon: Icons.auto_awesome_rounded,
+                              badge: 'ذکر',
+                              title: 'التَّحِيَّاتُ',
+                              subtitle: 'دەقی عەرەبی و وەرگێڕانی کوردی',
+                              arabic:
+                                  'التَّحِيَّاتُ لِلَّهِ وَالصَّلَواتُ وَالطَّيِّباتُ، السَّلامُ عَلَيْكَ أيُّها النَّبِيُّ وَرَحْمَةُ اللَّهِ وَبَرَکاتُهُ، السَّلامُ عَلَيْنا وَعَلَى عِبادِ اللَّهِ الصَّالِحِينَ، أَشْهَدُ أَنْ لا إلَهَ إلَّا اللَّهُ وَأَشْهَدُ أَنَّ مُحَمَّدًا عَبْدُهُ وَرَسُولُهُ.',
+                              kurdish:
+                                  'سڵاو و نزا و پاکی و بێگەردی بۆ خودایە، سڵاو لەسەر تۆ بێت ئەی پێغەمبەر و ڕەحمەت و بەرەکەتەکانی خودات لێبێت، سڵاو لەسەر ئێمە و لەسەر هەموو بەندە چاکەکانی خودا بێت، شایەتی دەدەم کە هیچ خودایەک نییە شایستەی پەرستن بێت جگە لە الله، و شایەتی دەدەم کە محمد بەندە و نێردراوی خودایە.',
+                            ),
+                            const SizedBox(height: 18),
+                            _buildSectionCard(
+                              icon: Icons.favorite_rounded,
+                              badge: 'دروود',
+                              title: 'الصَّلَواتُ',
+                              subtitle: 'سەڵاوات لەسەر پێغەمبەر ﷺ',
+                              arabic:
+                                  'اللَّهُمَّ صَلِّ عَلَى مُحَمَّدٍ وَعَلَى آلِ مُحَمَّدٍ، کَمَا صَلَّيْتَ عَلَى إبْرَاهِيمَ وَعَلَى آلِ إبْرَاهِيمَ، إنَّكَ حَمِيدٌ مَجِيدٌ، اللَّهُمَّ بَارِكْ عَلَى مُحَمَّدٍ وَعَلَى آلِ مُحَمَّدٍ، کَمَا بَارَکتَ عَلَى إبْرَاهِيمَ وَعَلَى آلِ إبْرَاهِيمَ، إنَّكَ حَمِيدٌ مَجِيدٌ.',
+                              kurdish:
+                                  'خودایە سەڵاوات و دروود بنێرە بۆ سەر محمد و ئال و بەیتی محمد، هەروەک چۆن سەڵاواتت نارد بۆ سەر ئیبراهیم و ئال و بەیتی ئیبراهیم، بەڕاستی تۆ سوپاسکراو و خاوەن شکۆیت. خودایە بەرەکەت بڕژێنە بەسەر محمد و ئال و بەیتی محمد، هەروەک چۆن بەرەکەتت ڕشت بەسەر ئیبراهیم و ئال و بەیتی ئیبراهیم، بەڕاستی تۆ سوپاسکراو و خاوەن شکۆیت.',
+                            ),
+                          ],
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -121,10 +122,10 @@ class AtahyatScreen extends StatelessWidget {
             height: 180,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: _accent.withOpacity(0.18),
+              color: _accent.withValues(alpha: 0.18),
               boxShadow: [
                 BoxShadow(
-                  color: _accent.withOpacity(0.18),
+                  color: _accent.withValues(alpha: 0.18),
                   blurRadius: 90,
                   spreadRadius: 25,
                 ),
@@ -140,10 +141,10 @@ class AtahyatScreen extends StatelessWidget {
             height: 150,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: _accent2.withOpacity(0.12),
+              color: _accent2.withValues(alpha: 0.12),
               boxShadow: [
                 BoxShadow(
-                  color: _accent2.withOpacity(0.12),
+                  color: _accent2.withValues(alpha: 0.12),
                   blurRadius: 90,
                   spreadRadius: 20,
                 ),
@@ -167,17 +168,17 @@ class AtahyatScreen extends StatelessWidget {
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  Colors.white.withOpacity(0.12),
-                  Colors.white.withOpacity(0.05),
+                  Colors.white.withValues(alpha: 0.12),
+                  Colors.white.withValues(alpha: 0.05),
                 ],
                 begin: Alignment.topRight,
                 end: Alignment.bottomLeft,
               ),
               borderRadius: BorderRadius.circular(28),
-              border: Border.all(color: Colors.white.withOpacity(0.12)),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.18),
+                  color: Colors.black.withValues(alpha: 0.18),
                   blurRadius: 24,
                   offset: const Offset(0, 14),
                 ),
@@ -262,16 +263,16 @@ class AtahyatScreen extends StatelessWidget {
             borderRadius: BorderRadius.circular(28),
             gradient: LinearGradient(
               colors: [
-                _surface.withOpacity(0.92),
-                _surface2.withOpacity(0.88),
+                _surface.withValues(alpha: 0.92),
+                _surface2.withValues(alpha: 0.88),
               ],
               begin: Alignment.topRight,
               end: Alignment.bottomLeft,
             ),
-            border: Border.all(color: Colors.white.withOpacity(0.08)),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.20),
+                color: Colors.black.withValues(alpha: 0.20),
                 blurRadius: 24,
                 offset: const Offset(0, 16),
               ),
@@ -288,9 +289,9 @@ class AtahyatScreen extends StatelessWidget {
                       vertical: 8,
                     ),
                     decoration: BoxDecoration(
-                      color: _gold.withOpacity(0.12),
+                      color: _gold.withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(30),
-                      border: Border.all(color: _gold.withOpacity(0.20)),
+                      border: Border.all(color: _gold.withValues(alpha: 0.20)),
                     ),
                     child: Text(
                       badge,
@@ -308,8 +309,8 @@ class AtahyatScreen extends StatelessWidget {
                       borderRadius: BorderRadius.circular(14),
                       gradient: LinearGradient(
                         colors: [
-                          _accent.withOpacity(0.95),
-                          _accent2.withOpacity(0.95),
+                          _accent.withValues(alpha: 0.95),
+                          _accent2.withValues(alpha: 0.95),
                         ],
                         begin: Alignment.topRight,
                         end: Alignment.bottomLeft,
@@ -342,7 +343,7 @@ class AtahyatScreen extends StatelessWidget {
                 width: double.infinity,
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.04),
+                  color: Colors.white.withValues(alpha: 0.04),
                   borderRadius: BorderRadius.circular(22),
                   border: Border.all(color: _line),
                 ),
@@ -361,9 +362,9 @@ class AtahyatScreen extends StatelessWidget {
                 width: double.infinity,
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.16),
+                  color: Colors.black.withValues(alpha: 0.16),
                   borderRadius: BorderRadius.circular(22),
-                  border: Border.all(color: Colors.white.withOpacity(0.05)),
+                  border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
                 ),
                 child: Text(
                   kurdish,

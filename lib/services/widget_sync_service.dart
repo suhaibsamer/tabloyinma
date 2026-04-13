@@ -5,7 +5,7 @@ import 'prayer_service.dart';
 import '../models/prayer_times.dart';
 
 class WidgetSyncService {
-  static const String _groupId = 'group.com.example.tabloy_iman'; // Should match native side
+  static const String _groupId = 'group.com.teestudio.tabloyiman'; // Should match native side
   static const String _androidWidgetName = 'TabloyImanWidget';
   static const String _iosWidgetName = 'TabloyImanWidget';
 
@@ -54,3 +54,4 @@ class WidgetSyncService {
     }
   }
 }
+

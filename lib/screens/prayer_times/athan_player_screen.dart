@@ -6,7 +6,7 @@ import '../../utils/kurdish_styles.dart';
 
 class AthanPlayerScreen extends StatefulWidget {
   final String prayerName;
-  const AthanPlayerScreen({Key? key, required this.prayerName}) : super(key: key);
+  const AthanPlayerScreen({super.key, required this.prayerName});
 
   @override
   _AthanPlayerScreenState createState() => _AthanPlayerScreenState();
@@ -17,7 +17,6 @@ class _AthanPlayerScreenState extends State<AthanPlayerScreen> with SingleTicker
   late AnimationController _pulseController;
   
   static const _deepSpace = Color(0xFF04060F);
-  static const _midnight  = Color(0xFF0B0F1E);
   static const _teal      = Color(0xFF22D3EE);
   static const _gold      = Color(0xFFFFD700);
 
@@ -92,8 +91,8 @@ class _AthanPlayerScreenState extends State<AthanPlayerScreen> with SingleTicker
           decoration: BoxDecoration(
             gradient: RadialGradient(
               colors: [
-                _teal.withOpacity(0.15),
-                _deepSpace.withOpacity(0.8),
+                _teal.withValues(alpha: 0.15),
+                _deepSpace.withValues(alpha: 0.8),
               ],
               radius: 0.8,
             ),
@@ -114,13 +113,13 @@ class _AthanPlayerScreenState extends State<AthanPlayerScreen> with SingleTicker
             shape: BoxShape.circle,
             boxShadow: [
               BoxShadow(
-                color: _teal.withOpacity(0.2 * _pulseController.value),
+                color: _teal.withValues(alpha: 0.2 * _pulseController.value),
                 blurRadius: 40,
                 spreadRadius: 10 * _pulseController.value,
               ),
             ],
             border: Border.all(
-              color: _teal.withOpacity(0.3 + (0.7 * _pulseController.value)),
+              color: _teal.withValues(alpha: 0.3 + (0.7 * _pulseController.value)),
               width: 2,
             ),
           ),
@@ -145,9 +144,9 @@ class _AthanPlayerScreenState extends State<AthanPlayerScreen> with SingleTicker
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 16),
         decoration: BoxDecoration(
-          color: Colors.red.withOpacity(0.1),
+          color: Colors.red.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(30),
-          border: Border.all(color: Colors.red.withOpacity(0.5)),
+          border: Border.all(color: Colors.red.withValues(alpha: 0.5)),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -177,10 +176,11 @@ class _StarfieldPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final paint = Paint();
     for (int i = 0; i < _stars.length; i++) {
-      paint.color = Colors.white.withOpacity(math.Random(i * 137).nextDouble() * 0.4 + 0.1);
+      paint.color = Colors.white.withValues(alpha: math.Random(i * 137).nextDouble() * 0.4 + 0.1);
       canvas.drawCircle(Offset(_stars[i].dx * size.width, _stars[i].dy * size.height), math.Random(i * 137).nextDouble() * 1.2 + 0.3, paint);
     }
   }
   @override
   bool shouldRepaint(covariant CustomPainter old) => false;
 }
+

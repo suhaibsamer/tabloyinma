@@ -15,7 +15,7 @@ class FontSizeControls extends StatelessWidget {
           decoration: BoxDecoration(
             color: const Color(0xFF131829),
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: const Color(0xFFB08AFF).withOpacity(0.2)),
+            border: Border.all(color: const Color(0xFFB08AFF).withValues(alpha: 0.2)),
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -63,7 +63,7 @@ class FontSizeControls extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
-          color: const Color(0xFFB08AFF).withOpacity(0.1),
+          color: const Color(0xFFB08AFF).withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(10),
         ),
         child: Icon(icon, color: const Color(0xFFB08AFF), size: 20),
@@ -71,3 +71,5 @@ class FontSizeControls extends StatelessWidget {
     );
   }
 }
+
+

@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
-import '../models/hifz_models.dart';
 
 class HifzDatabaseService {
   static final HifzDatabaseService _instance = HifzDatabaseService._internal();
@@ -115,3 +114,4 @@ class HifzDatabaseService {
     );
   }
 }
+

@@ -7,7 +7,7 @@ import '../../utils/kurdish_styles.dart';
 import 'dart:math' as math;
 
 class ReciterSelectionScreen extends StatefulWidget {
-  const ReciterSelectionScreen({Key? key}) : super(key: key);
+  const ReciterSelectionScreen({super.key});
 
   @override
   _ReciterSelectionScreenState createState() => _ReciterSelectionScreenState();
@@ -67,17 +67,17 @@ class _ReciterSelectionScreenState extends State<ReciterSelectionScreen> {
                   style: const TextStyle(color: _starlight),
                   decoration: InputDecoration(
                     hintText: 'گەڕان بۆ قورئانخوێن...',
-                    hintStyle: KurdishStyles.getKurdishStyle(color: _moonGlow.withOpacity(0.5), fontSize: 14),
+                    hintStyle: KurdishStyles.getKurdishStyle(color: _moonGlow.withValues(alpha: 0.5), fontSize: 14),
                     prefixIcon: const Icon(Icons.search, color: _teal),
                     filled: true,
                     fillColor: _midnight,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(15),
-                      borderSide: BorderSide(color: _teal.withOpacity(0.3)),
+                      borderSide: BorderSide(color: _teal.withValues(alpha: 0.3)),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(15),
-                      borderSide: BorderSide(color: _teal.withOpacity(0.1)),
+                      borderSide: BorderSide(color: _teal.withValues(alpha: 0.1)),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(15),
@@ -118,10 +118,10 @@ class _ReciterSelectionScreenState extends State<ReciterSelectionScreen> {
         child: Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: isSelected ? _teal.withOpacity(0.1) : _midnight,
+            color: isSelected ? _teal.withValues(alpha: 0.1) : _midnight,
             borderRadius: BorderRadius.circular(15),
             border: Border.all(
-              color: isSelected ? _teal : _teal.withOpacity(0.1),
+              color: isSelected ? _teal : _teal.withValues(alpha: 0.1),
               width: isSelected ? 1.5 : 1,
             ),
           ),
@@ -166,7 +166,7 @@ class _ReciterSelectionScreenState extends State<ReciterSelectionScreen> {
                             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                             margin: const EdgeInsets.only(right: 8),
                             decoration: BoxDecoration(
-                              color: _teal.withOpacity(0.2),
+                              color: _teal.withValues(alpha: 0.2),
                               borderRadius: BorderRadius.circular(5),
                             ),
                             child: Text(
@@ -176,7 +176,7 @@ class _ReciterSelectionScreenState extends State<ReciterSelectionScreen> {
                           ),
                         Text(
                           reciter.bitrate,
-                          style: TextStyle(color: _moonGlow.withOpacity(0.5), fontSize: 11),
+                          style: TextStyle(color: _moonGlow.withValues(alpha: 0.5), fontSize: 11),
                         ),
                       ],
                     ),
@@ -205,10 +205,11 @@ class _StarfieldPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final paint = Paint();
     for (int i = 0; i < _stars.length; i++) {
-      paint.color = Colors.white.withOpacity(math.Random(i * 137).nextDouble() * 0.4 + 0.1);
+      paint.color = Colors.white.withValues(alpha: math.Random(i * 137).nextDouble() * 0.4 + 0.1);
       canvas.drawCircle(Offset(_stars[i].dx * size.width, _stars[i].dy * size.height), math.Random(i * 137).nextDouble() * 1.2 + 0.3, paint);
     }
   }
   @override
   bool shouldRepaint(covariant CustomPainter old) => false;
 }
+

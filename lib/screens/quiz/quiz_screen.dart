@@ -31,9 +31,7 @@ class _QuizScreenState extends State<QuizScreen> {
   // ── Palette ────────────────────────────────────────────────────────────
   static const _deepSpace = Color(0xFF04060F);
   static const _midnight = Color(0xFF0B0F1E);
-  static const _nebula = Color(0xFF131829);
   static const _starlight = Color(0xFFF0EEF8);
-  static const _moonGlow = Color(0xFFE8E2FF);
   static const _accent = Color(0xFFB08AFF);
   static const _correct = Color(0xFF10B981);
   static const _wrong = Color(0xFFEF4444);
@@ -178,7 +176,7 @@ class _QuizScreenState extends State<QuizScreen> {
           // Progress Bar
           LinearProgressIndicator(
             value: progress,
-            backgroundColor: isDarkMode ? _midnight : Colors.grey.withOpacity(0.1),
+            backgroundColor: isDarkMode ? _midnight : Colors.grey.withValues(alpha: 0.1),
             valueColor: const AlwaysStoppedAnimation<Color>(_accent),
             minHeight: 8,
             borderRadius: BorderRadius.circular(10),
@@ -193,7 +191,7 @@ class _QuizScreenState extends State<QuizScreen> {
               ),
               Text(
                 'پرسیار ${_currentQuestionIndex + 1} لە ${_shuffledQuestions.length}',
-                style: TextStyle(color: textColor.withOpacity(0.6), fontSize: 13),
+                style: TextStyle(color: textColor.withValues(alpha: 0.6), fontSize: 13),
                 textDirection: TextDirection.rtl,
               ),
             ],
@@ -206,7 +204,7 @@ class _QuizScreenState extends State<QuizScreen> {
             decoration: BoxDecoration(
               color: isDarkMode ? _midnight : const Color(0xFFF8FAFC),
               borderRadius: BorderRadius.circular(28),
-              border: Border.all(color: _accent.withOpacity(0.2), width: 1.5),
+              border: Border.all(color: _accent.withValues(alpha: 0.2), width: 1.5),
             ),
             child: Text(
               question.question,
@@ -225,7 +223,7 @@ class _QuizScreenState extends State<QuizScreen> {
           Expanded(
             child: ListView.separated(
               itemCount: question.options.length,
-              separatorBuilder: (_, __) => const SizedBox(height: 16),
+              separatorBuilder: (_, _) => const SizedBox(height: 16),
               itemBuilder: (context, index) {
                 return _buildOptionButton(index, question, isDarkMode, textColor);
               },
@@ -241,14 +239,14 @@ class _QuizScreenState extends State<QuizScreen> {
     bool isSelected = index == _selectedAnswerIndex;
     
     Color buttonColor = isDarkMode ? _midnight : const Color(0xFFF8FAFC);
-    Color borderColor = isDarkMode ? _accent.withOpacity(0.1) : Colors.grey.withOpacity(0.2);
+    Color borderColor = isDarkMode ? _accent.withValues(alpha: 0.1) : Colors.grey.withValues(alpha: 0.2);
     
     if (_isAnswered) {
       if (isCorrect) {
-        buttonColor = _correct.withOpacity(0.15);
+        buttonColor = _correct.withValues(alpha: 0.15);
         borderColor = _correct;
       } else if (isSelected) {
-        buttonColor = _wrong.withOpacity(0.15);
+        buttonColor = _wrong.withValues(alpha: 0.15);
         borderColor = _wrong;
       }
     } else if (isSelected) {
@@ -326,7 +324,7 @@ class _QuizScreenState extends State<QuizScreen> {
               decoration: BoxDecoration(
                 color: isDarkMode ? _midnight : const Color(0xFFF8FAFC),
                 shape: BoxShape.circle,
-                border: Border.all(color: _accent.withOpacity(0.3), width: 4),
+                border: Border.all(color: _accent.withValues(alpha: 0.3), width: 4),
               ),
               child: Column(
                 children: [
@@ -345,7 +343,7 @@ class _QuizScreenState extends State<QuizScreen> {
                   ),
                   Text(
                     'نمرەکانت',
-                    style: TextStyle(color: textColor.withOpacity(0.5)),
+                    style: TextStyle(color: textColor.withValues(alpha: 0.5)),
                   ),
                 ],
               ),
@@ -366,7 +364,7 @@ class _QuizScreenState extends State<QuizScreen> {
               onPressed: () => Navigator.pop(context),
               child: Text(
                 'گەڕانەوە بۆ سەرەتا',
-                style: TextStyle(color: textColor.withOpacity(0.6)),
+                style: TextStyle(color: textColor.withValues(alpha: 0.6)),
               ),
             ),
           ],
@@ -398,7 +396,7 @@ class _StarfieldPainter extends CustomPainter {
       final rng = math.Random(i * 137);
       final radius = rng.nextDouble() * 1.2 + 0.3;
       final opacity = rng.nextDouble() * 0.45 + 0.1;
-      paint.color = Colors.white.withOpacity(opacity);
+      paint.color = Colors.white.withValues(alpha: opacity);
       canvas.drawCircle(
         Offset(_stars[i].dx * size.width, _stars[i].dy * size.height),
         radius,
@@ -410,3 +408,4 @@ class _StarfieldPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant CustomPainter old) => false;
 }
+
